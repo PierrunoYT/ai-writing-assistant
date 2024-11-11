@@ -4,6 +4,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { clearAuth } from '../store/slices/authSlice';
+import { toggleTheme } from '../store/slices/themeSlice';
 import ChatInterface from './ChatInterface';
 import LoginForm from './LoginForm';
 
