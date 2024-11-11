@@ -8,6 +8,7 @@ import { addMessage, setLoading, setError, updateLastMessage, clearMessages } fr
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message, StreamResponse, APIMessage, MessageContent, OpenRouterErrorResponse, KeyInfo } from '../types';
+import { systemPrompts } from '../prompts/systemPrompts';
 
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Writing Assistant';
@@ -42,9 +43,8 @@ const ChatInterface = () => {
   const [selectedPromptId, setSelectedPromptId] = useState('default');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
-  const { systemPrompts } = require('../prompts/systemPrompts');
   
-  const currentPrompt = systemPrompts.find(p => p.id === selectedPromptId)?.prompt || customPrompt;
+  const currentPrompt = systemPrompts.find((p: { id: string }) => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
 
