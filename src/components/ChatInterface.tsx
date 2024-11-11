@@ -373,9 +373,17 @@ const ChatInterface = () => {
           maxRows={4}
           value={input}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
           disabled={isLoading}
           sx={{ bgcolor: 'background.paper' }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (input.trim() && !isLoading) {
+                handleSubmit(e as any);
+              }
+            }
+          }}
         />
         <Button
           type="submit"
