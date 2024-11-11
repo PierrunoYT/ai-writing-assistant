@@ -345,17 +345,16 @@ const ChatInterface = () => {
               <DeleteOutlineIcon />
             </IconButton>
           </Tooltip>
-          )}
-          <Tooltip title="System Prompt">
-            <IconButton
-              onClick={() => setIsPromptDialogOpen(true)}
-              color="primary"
-              disabled={isLoading}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
         )}
+        <Tooltip title="System Prompt">
+          <IconButton
+            onClick={() => setIsPromptDialogOpen(true)}
+            color="primary"
+            disabled={isLoading}
+          >
+            <SettingsIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
     </Box>
   );
