@@ -381,15 +381,16 @@ const ChatInterface = () => {
       </Dialog>
 
       {isDocumentMode ? (
-        <DocumentMode
-          onSwitchMode={() => {
-            setIsDocumentMode(false);
-            setDocumentState({
-              content: '',
-              comments: [],
-              isEditMode: true
-            });
-          }}
+        <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
+          <DocumentMode
+            onSwitchMode={() => {
+              setIsDocumentMode(false);
+              setDocumentState({
+                content: '',
+                comments: [],
+                isEditMode: true
+              });
+            }}
           onSubmitDocument={(content, comments) => {
             const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${content}\n\nComments:\n${comments.map(c => (
               `- At "${content.substring(c.position.start, c.position.end)}": ${c.content}`
