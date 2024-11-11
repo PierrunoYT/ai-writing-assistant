@@ -138,15 +138,15 @@ const ChatInterface = () => {
 
   return (
     <Box sx={{ 
-      height: 'calc(100vh - 180px)', // Increased space for bottom controls
       display: 'flex', 
       flexDirection: 'column',
-      gap: 2,
       maxWidth: '1200px',
       mx: 'auto',
       width: '100%',
       px: { xs: 2, sm: 4 },
-      pb: 3 // Added bottom padding
+      height: '100%',
+      maxHeight: 'calc(100vh - 100px)',
+      overflow: 'hidden'
     }}>
       {isDocumentMode ? (
         <Box sx={{ 
@@ -170,7 +170,8 @@ const ChatInterface = () => {
           <Paper 
             elevation={3} 
             sx={{ 
-              flexGrow: 1, 
+              flex: 1,
+              minHeight: 0,
               mb: 2, 
               p: 2, 
               overflow: 'auto',
@@ -192,7 +193,7 @@ const ChatInterface = () => {
             currentPrompt={currentPrompt}
           />
 
-          <Box sx={{ mt: 'auto' }}>
+          <Box sx={{ flexShrink: 0, pb: 2 }}>
             <ChatControls
               input={input}
               setInput={setInput}
