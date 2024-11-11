@@ -7,6 +7,9 @@ import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message } from '../types';
 
+const SITE_URL = window.location.origin;
+const SITE_NAME = 'Writing Assistant';
+
 const ChatInterface = () => {
   const [input, setInput] = useState('');
   const dispatch = useDispatch();
@@ -31,11 +34,13 @@ const ChatInterface = () => {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+          'HTTP-Referer': SITE_URL,
+          'X-Title': SITE_NAME,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-2',
+          model: 'anthropic/claude-3-5-haiku',
           messages: messages.map((msg: Message) => ({
             role: msg.role,
             content: msg.content,
@@ -44,10 +49,19 @@ const ChatInterface = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.error?.message || 
+          `API request failed with status ${response.status}`
+        );
       }
 
       const data = await response.json();
+      
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from API');
+      }
+
       const assistantMessage: Message = {
         id: Date.now().toString(),
         content: data.choices[0].message.content,
@@ -58,6 +72,7 @@ const ChatInterface = () => {
       dispatch(addMessage(assistantMessage));
     } catch (error) {
       dispatch(setError(error instanceof Error ? error.message : 'An error occurred'));
+      console.error('Chat error:', error);
     } finally {
       dispatch(setLoading(false));
     }
