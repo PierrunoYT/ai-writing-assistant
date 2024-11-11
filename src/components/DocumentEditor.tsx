@@ -113,19 +113,26 @@ const DocumentEditor = ({
       display: 'flex', 
       gap: 2, 
       height: '100%',
-      overflow: 'hidden'
+      width: '100%',
+      overflow: 'hidden',
+      p: 2,
+      boxSizing: 'border-box'
     }}>
       <Paper 
         elevation={3} 
         sx={{ 
-          flex: 2, 
-          p: 2,
+          flex: 2,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          height: '100%'
         }}
       >
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'auto',
+          p: 2
+        }}>
           <TextField
             fullWidth
             multiline
@@ -152,7 +159,7 @@ const DocumentEditor = ({
         </Box>
         
         {selection && (
-          <Box sx={{ mt: 2, flexShrink: 0 }}>
+          <Box sx={{ p: 2, flexShrink: 0 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Selected text: "{selection.text}"
             </Typography>
@@ -185,14 +192,14 @@ const DocumentEditor = ({
       <Paper 
         elevation={3} 
         sx={{ 
-          flex: 1, 
-          p: 2, 
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          height: '100%'
         }}
       >
-        <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Box sx={{ p: 2, flexShrink: 0 }}>
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
@@ -226,6 +233,8 @@ const DocumentEditor = ({
         <Box sx={{ 
           flex: 1, 
           overflow: 'auto',
+          px: 2,
+          pb: 2,
           '&::-webkit-scrollbar': {
             width: '8px',
           },
