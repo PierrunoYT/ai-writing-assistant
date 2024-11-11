@@ -138,20 +138,14 @@ const ChatInterface = () => {
 
   return (
     <Box sx={{ 
-      display: 'flex', 
+      display: 'flex',
       flexDirection: 'column',
-      maxWidth: '1200px',
-      mx: 'auto',
-      width: '100%',
-      px: { xs: 2, sm: 4 },
-      height: '100%',
-      maxHeight: 'calc(100vh - 100px)',
-      overflow: 'hidden'
+      height: 'calc(100vh - 160px)',
+      gap: 2
     }}>
       {isDocumentMode ? (
         <Box sx={{ 
           flex: 1,
-          minHeight: 0,
           bgcolor: 'background.paper', 
           borderRadius: 1,
           overflow: 'hidden'
@@ -171,12 +165,9 @@ const ChatInterface = () => {
             elevation={3} 
             sx={{ 
               flex: 1,
-              minHeight: 0,
-              mb: 2, 
               p: 2, 
               overflow: 'auto',
-              bgcolor: 'background.paper',
-              position: 'relative'
+              bgcolor: 'background.paper'
             }}
           >
             <MessageList messages={messages} />
@@ -193,7 +184,7 @@ const ChatInterface = () => {
             currentPrompt={currentPrompt}
           />
 
-          <Box sx={{ flexShrink: 0, pb: 2 }}>
+          <Box>
             <ChatControls
               input={input}
               setInput={setInput}
