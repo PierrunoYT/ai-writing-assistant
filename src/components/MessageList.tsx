@@ -1,4 +1,5 @@
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { Message } from '../types';
 
 interface MessageListProps {
@@ -27,11 +28,33 @@ const MessageList = ({ messages }: MessageListProps) => {
               transform: 'translateY(-1px)',
               transition: 'transform 0.2s ease-in-out',
             },
+            position: 'relative',
           }}
         >
-          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-            {message.content}
-          </Typography>
+          <Box sx={{ position: 'relative' }}>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', pr: message.role === 'assistant' ? 4 : 0 }}>
+              {message.content}
+            </Typography>
+            {message.role === 'assistant' && message.content && (
+              <Tooltip title="Copy response">
+                <IconButton
+                  size="small"
+                  onClick={() => navigator.clipboard.writeText(message.content)}
+                  sx={{
+                    position: 'absolute',
+                    right: -8,
+                    top: -8,
+                    color: 'text.secondary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    },
+                  }}
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
           <Typography variant="caption" color={message.role === 'user' ? 'inherit' : 'text.secondary'}>
             {new Date(message.timestamp).toLocaleTimeString()}
           </Typography>
