@@ -207,7 +207,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
         gap: 2,
         flex: 1,
         minHeight: 0,
-        maxHeight: 'calc(100vh - 100px)',
         overflow: 'hidden'
       }}>
         <Paper 
@@ -220,7 +219,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            overflow: 'hidden',
             '&:hover': {
               boxShadow: `0px 8px 24px ${theme.palette.mode === 'dark' 
                 ? 'rgba(0, 0, 0, 0.4)' 
@@ -258,7 +256,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            overflow: 'hidden',
             '&:hover': {
               boxShadow: `0px 8px 24px ${theme.palette.mode === 'dark' 
                 ? 'rgba(0, 0, 0, 0.4)' 
@@ -336,7 +333,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             flex: 1,
             overflowY: 'auto',
             minHeight: 0,
-            pr: 1,
             '&::-webkit-scrollbar': {
               width: '8px',
             },
@@ -352,6 +348,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
                   sx={{ 
                     p: 2,
                     mb: 2,
+                    mr: 1,
                     bgcolor: theme.palette.action.hover,
                     borderRadius: 1,
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
