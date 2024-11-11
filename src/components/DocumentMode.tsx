@@ -165,16 +165,17 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column',
-      height: '100%',
-      maxHeight: '100vh',
+      height: 'calc(100vh - 32px)', // Adjusted to account for padding
       p: 2,
-      bgcolor: theme.palette.background.default
+      bgcolor: theme.palette.background.default,
+      overflow: 'hidden' // Prevent outer scrolling
     }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        mb: 2 
+        mb: 2,
+        flexShrink: 0 // Prevent header from shrinking
       }}>
         <Typography variant="h5" fontWeight="bold" color="primary">
           Document Editor
@@ -204,7 +205,8 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
         display: 'flex', 
         gap: 2,
         flex: 1,
-        minHeight: 0
+        minHeight: 0, // Important for proper flex behavior
+        overflow: 'hidden' // Contain the scrolling
       }}>
         <Paper 
           elevation={3} 
@@ -216,6 +218,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             transition: 'box-shadow 0.2s',
+            overflow: 'hidden', // Contain the scrolling
             '&:hover': {
               boxShadow: theme.shadows[6]
             }
@@ -234,7 +237,10 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
               borderRadius: '4px',
               fontSize: '1rem',
               lineHeight: 1.6,
-              outline: 'none'
+              outline: 'none',
+              minHeight: '100%', // Ensure full height usage
+              wordWrap: 'break-word', // Prevent horizontal overflow
+              whiteSpace: 'pre-wrap' // Preserve whitespace and wrapping
             }}
           />
         </Paper>
@@ -249,6 +255,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             transition: 'box-shadow 0.2s',
+            overflow: 'hidden', // Contain the scrolling
             '&:hover': {
               boxShadow: theme.shadows[6]
             }
@@ -258,7 +265,8 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            mb: 2
+            mb: 2,
+            flexShrink: 0 // Prevent header from shrinking
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CommentIcon color="primary" />
@@ -287,7 +295,8 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
               mb: 2,
               p: 2,
               bgcolor: theme.palette.action.hover,
-              borderRadius: 1
+              borderRadius: 1,
+              flexShrink: 0 // Prevent comment input from shrinking
             }}>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                 Selected text: "{selectedText}"
@@ -408,7 +417,8 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
                 mt: 2,
                 textTransform: 'none',
                 borderRadius: 1,
-                py: 1.5
+                py: 1.5,
+                flexShrink: 0 // Prevent button from shrinking
               }}
             >
               {isProcessing ? (
