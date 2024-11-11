@@ -1,4 +1,6 @@
-import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { Box, Container, AppBar, Toolbar, Typography, Button, IconButton } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { clearAuth } from '../store/slices/authSlice';
@@ -7,6 +9,7 @@ import LoginForm from './LoginForm';
 
 const Layout = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
   const dispatch = useDispatch();
 
   const handleLogout = () => {
@@ -20,6 +23,13 @@ const Layout = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             AI Writing Assistant
           </Typography>
+          <IconButton 
+            color="inherit" 
+            onClick={() => dispatch(toggleTheme())} 
+            sx={{ mr: 1 }}
+          >
+            {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
           {user && (
             <Button color="inherit" onClick={handleLogout}>
               Logout
