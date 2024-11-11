@@ -1,23 +1,30 @@
 # AI Writing Assistant
 
-A modern AI writing assistant built with React, TypeScript, and local storage, featuring real-time chat with OpenRouter AI.
+A modern AI writing assistant built with React, TypeScript, and local storage, featuring real-time chat with OpenRouter AI. Supports both chat and document editing modes for versatile writing assistance.
 
 ## Features
 
 - Real-time chat interface with AI
-- User authentication (sign up/sign in)
-- Dark mode UI
+- Document editing mode with AI assistance
+- Customizable system prompts
+- Dark/Light mode UI
 - Responsive design
 - Message history
 - Local storage persistence
+- OpenRouter AI integration
+- TypeScript support for robust development
 
 ## Tech Stack
 
-- Frontend: React + TypeScript
+- Frontend: React + TypeScript + Vite
 - State Management: Redux Toolkit
 - UI Framework: Material-UI (MUI)
 - Storage: Local Storage
 - AI Integration: OpenRouter API
+- Development Tools:
+  - ESLint for code quality
+  - TypeScript for type safety
+  - Vite for fast development and building
 
 ## Prerequisites
 
@@ -52,10 +59,23 @@ npm run dev
 
 ```
 src/
-├── components/        # React components
-├── store/            # Redux store and slices
-├── types/            # TypeScript type definitions
-├── App.tsx           # Main App component
+├── assets/           # Static assets
+├── components/       # React components
+│   ├── ChatControls
+│   ├── ChatInput
+│   ├── ChatInterface
+│   ├── DocumentEditor
+│   ├── DocumentMode
+│   ├── Layout
+│   ├── MessageList
+│   └── SystemPromptDialog
+├── prompts/          # System prompts configuration
+├── services/         # API services
+├── store/           # Redux store setup
+│   └── slices/      # Redux slices
+├── types/           # TypeScript type definitions
+├── utils/           # Utility functions
+├── App.tsx          # Main App component
 └── main.tsx         # Application entry point
 ```
 
