@@ -65,7 +65,7 @@ const DocumentEditor = ({
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 2, height: '100%' }}>
+    <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)' }}>
       <Paper elevation={3} sx={{ flex: 2, p: 2 }}>
         <TextField
           fullWidth
