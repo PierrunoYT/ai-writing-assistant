@@ -13,6 +13,8 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 import { Comment } from '../types';
 
 interface DocumentEditorProps {
@@ -30,6 +32,13 @@ interface Selection {
   end: number;
 }
 
+interface Segment {
+  text: string;
+  start: number;
+  end: number;
+  isEditing: boolean;
+}
+
 const DocumentEditor = ({
   content,
   comments,
@@ -40,28 +49,104 @@ const DocumentEditor = ({
 }: DocumentEditorProps) => {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [commentInput, setCommentInput] = useState('');
+  const [segments, setSegments] = useState<Segment[]>([]);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
     severity: 'success' | 'error' | 'info';
   }>({ open: false, message: '', severity: 'info' });
   
-  const textFieldRef = useRef<HTMLTextAreaElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTextSelect = useCallback(() => {
-    if (textFieldRef.current) {
-      const start = textFieldRef.current.selectionStart ?? 0;
-      const end = textFieldRef.current.selectionEnd ?? 0;
-      
-      if (start !== end) {
-        const selected = textFieldRef.current.value.substring(start, end);
-        setSelection({ text: selected, start, end });
-      } else {
-        setSelection(null);
-      }
+  // Split content into segments based on comments
+  useEffect(() => {
+    const positions = comments
+      .map(comment => [comment.position.start, comment.position.end])
+      .flat()
+      .sort((a, b) => a - b);
+
+    const uniquePositions = Array.from(new Set([0, ...positions, content.length]));
+    const newSegments: Segment[] = [];
+
+    for (let i = 0; i < uniquePositions.length - 1; i++) {
+      const start = uniquePositions[i];
+      const end = uniquePositions[i + 1];
+      newSegments.push({
+        text: content.substring(start, end),
+        start,
+        end,
+        isEditing: false
+      });
     }
-  }, []);
+
+    setSegments(newSegments);
+  }, [content, comments]);
+
+  const handleSegmentEdit = (index: number, newText: string) => {
+    const newSegments = [...segments];
+    const oldLength = segments[index].text.length;
+    const lengthDiff = newText.length - oldLength;
+    
+    // Update the current segment
+    newSegments[index] = {
+      ...segments[index],
+      text: newText
+    };
+
+    // Update subsequent segments' positions
+    for (let i = index + 1; i < segments.length; i++) {
+      newSegments[i] = {
+        ...segments[i],
+        start: segments[i].start + lengthDiff,
+        end: segments[i].end + lengthDiff
+      };
+    }
+
+    // Update comments' positions and notify parent
+    const updatedContent = newSegments.map(seg => seg.text).join('');
+    onChange(updatedContent);
+
+    setSegments(newSegments);
+  };
+
+  const toggleSegmentEdit = (index: number) => {
+    setSegments(prev => prev.map((seg, i) => ({
+      ...seg,
+      isEditing: i === index ? !seg.isEditing : false
+    })));
+  };
+
+  const handleTextSelect = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      setSelection(null);
+      return;
+    }
+
+    const selectedText = selection.toString().trim();
+    if (!selectedText) {
+      setSelection(null);
+      return;
+    }
+
+    // Find the segment containing the selection
+    let start = -1;
+    let end = -1;
+
+    segments.forEach(segment => {
+      const segmentContent = segment.text;
+      const selectionIndex = segmentContent.indexOf(selectedText);
+      
+      if (selectionIndex !== -1) {
+        start = segment.start + selectionIndex;
+        end = start + selectedText.length;
+      }
+    });
+
+    if (start !== -1 && end !== -1) {
+      setSelection({ text: selectedText, start, end });
+    }
+  }, [segments]);
 
   const handleAddComment = useCallback(() => {
     if (!selection || !commentInput.trim()) {
@@ -88,20 +173,15 @@ const DocumentEditor = ({
       message: 'Comment added successfully',
       severity: 'success'
     });
-
-    // Return focus to the main text field
-    textFieldRef.current?.focus();
   }, [selection, commentInput, onAddComment]);
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    // Ctrl/Cmd + Enter to add comment
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && selection && commentInput) {
       e.preventDefault();
       handleAddComment();
     }
   }, [selection, commentInput, handleAddComment]);
 
-  // Auto-focus comment input when text is selected
   useEffect(() => {
     if (selection) {
       commentInputRef.current?.focus();
@@ -128,34 +208,65 @@ const DocumentEditor = ({
           height: '100%'
         }}
       >
-        <Box sx={{ 
-          flex: 1, 
-          overflow: 'auto',
-          p: 2
-        }}>
-          <TextField
-            fullWidth
-            multiline
-            minRows={20}
-            value={content}
-            onChange={(e) => onChange(e.target.value)}
-            onSelect={handleTextSelect}
-            onMouseUp={handleTextSelect}
-            onKeyUp={handleTextSelect}
-            inputRef={textFieldRef}
-            placeholder="Enter or paste your text here..."
-            sx={{ 
-              '& .MuiInputBase-root': {
-                height: '100%'
-              },
-              '& .MuiInputBase-input': {
-                height: '100% !important',
-                overflow: 'auto !important',
-                lineHeight: '1.5',
-                fontSize: '1rem'
-              }
-            }}
-          />
+        <Box 
+          sx={{ 
+            flex: 1, 
+            overflow: 'auto',
+            p: 2
+          }}
+          onMouseUp={handleTextSelect}
+        >
+          {segments.map((segment, index) => (
+            <Box 
+              key={index}
+              sx={{ 
+                position: 'relative',
+                mb: 1,
+                '&:hover .edit-button': {
+                  opacity: 1
+                }
+              }}
+            >
+              {segment.isEditing ? (
+                <TextField
+                  fullWidth
+                  multiline
+                  value={segment.text}
+                  onChange={(e) => handleSegmentEdit(index, e.target.value)}
+                  autoFocus
+                  sx={{ mb: 1 }}
+                />
+              ) : (
+                <Typography 
+                  component="div"
+                  sx={{ 
+                    whiteSpace: 'pre-wrap',
+                    p: 1,
+                    borderRadius: 1,
+                    '&:hover': {
+                      bgcolor: 'action.hover'
+                    }
+                  }}
+                >
+                  {segment.text}
+                </Typography>
+              )}
+              <IconButton
+                className="edit-button"
+                size="small"
+                onClick={() => toggleSegmentEdit(index)}
+                sx={{
+                  position: 'absolute',
+                  right: -36,
+                  top: 0,
+                  opacity: 0,
+                  transition: 'opacity 0.2s'
+                }}
+              >
+                {segment.isEditing ? <SaveIcon /> : <EditIcon />}
+              </IconButton>
+            </Box>
+          ))}
         </Box>
         
         {selection && (
