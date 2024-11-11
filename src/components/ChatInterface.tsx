@@ -276,17 +276,6 @@ const ChatInterface = () => {
           position: 'relative'
         }}
       >
-        {messages.length > 0 && (
-          <Tooltip title="Clear chat">
-            <IconButton
-              onClick={() => dispatch(clearMessages())}
-              sx={{ position: 'absolute', top: 8, right: 8 }}
-              size="small"
-            >
-              <DeleteOutlineIcon />
-            </IconButton>
-          </Tooltip>
-        )}
         <MessageList messages={messages} />
       </Paper>
 
@@ -316,6 +305,17 @@ const ChatInterface = () => {
         >
           Send
         </Button>
+        {messages.length > 0 && (
+          <Tooltip title="Clear chat">
+            <IconButton
+              onClick={() => dispatch(clearMessages())}
+              color="error"
+              disabled={isLoading}
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
     </Box>
   );
