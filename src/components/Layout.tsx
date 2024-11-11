@@ -27,12 +27,27 @@ const Layout = () => {
           <IconButton 
             color="inherit" 
             onClick={() => dispatch(toggleTheme())} 
-            sx={{ mr: 1 }}
+            sx={{ 
+              mr: 1,
+              '&:hover': {
+                bgcolor: (theme) => theme.palette.primary.light,
+                color: 'white'
+              }
+            }}
           >
             {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
           {user && (
-            <Button color="inherit" onClick={handleLogout}>
+            <Button 
+              color="inherit" 
+              onClick={handleLogout}
+              sx={{
+                '&:hover': {
+                  bgcolor: (theme) => theme.palette.error.light,
+                  color: 'white'
+                }
+              }}
+            >
               Logout
             </Button>
           )}
