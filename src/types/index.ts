@@ -47,6 +47,31 @@ export interface ToolCall {
 export interface APIError {
   code: number;
   message: string;
+  metadata?: ModerationErrorMetadata;
+}
+
+export interface ModerationErrorMetadata {
+  reasons: string[];
+  flagged_input: string;
+}
+
+export interface OpenRouterErrorResponse {
+  error: APIError;
+}
+
+export interface RateLimitInfo {
+  requests: number;
+  interval: string;
+}
+
+export interface KeyInfo {
+  data: {
+    label: string;
+    usage: number;
+    limit: number | null;
+    is_free_tier: boolean;
+    rate_limit: RateLimitInfo;
+  };
 }
 
 export interface StreamResponse {

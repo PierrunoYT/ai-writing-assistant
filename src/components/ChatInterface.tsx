@@ -5,13 +5,14 @@ import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
-import { Message, StreamResponse, APIMessage, MessageContent } from '../types';
+import { Message, StreamResponse, APIMessage, MessageContent, OpenRouterErrorResponse, KeyInfo } from '../types';
 
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Writing Assistant';
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000;
 
 const formatMessageForAPI = (msg: Message): APIMessage => {
-  // For system messages or large content, use cache control
   if (msg.role === 'system' || msg.content.length > 1000) {
     const content: MessageContent[] = [{
       type: 'text',
@@ -26,32 +27,105 @@ const formatMessageForAPI = (msg: Message): APIMessage => {
     };
   }
   
-  // For regular messages, use simple format
   return {
     role: msg.role,
     content: msg.content
   };
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const ChatInterface = () => {
   const [input, setInput] = useState('');
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
 
+  const checkRateLimit = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to check rate limit');
+      }
+
+      const keyInfo: KeyInfo = await response.json();
+      const { usage, limit } = keyInfo.data;
+
+      if (limit !== null && usage >= limit) {
+        dispatch(setError('API key has reached its credit limit'));
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Rate limit check error:', error);
+      return true; // Continue if rate limit check fails
+    }
+  };
+
+  const handleError = (error: OpenRouterErrorResponse) => {
+    const { code, message, metadata } = error.error;
+    let errorMessage = message;
+
+    switch (code) {
+      case 400:
+        errorMessage = 'Invalid request. Please check your input and try again.';
+        break;
+      case 401:
+        errorMessage = 'Authentication failed. Please check your API key.';
+        break;
+      case 402:
+        errorMessage = 'Insufficient credits. Please add more credits to continue.';
+        break;
+      case 403:
+        if (metadata?.reasons) {
+          errorMessage = `Content moderation error: ${metadata.reasons.join(', ')}`;
+          if (metadata.flagged_input) {
+            errorMessage += `\nFlagged content: "${metadata.flagged_input}"`;
+          }
+        }
+        break;
+      case 408:
+        errorMessage = 'Request timed out. Please try again.';
+        break;
+      case 429:
+        errorMessage = 'Rate limit exceeded. Please wait before trying again.';
+        break;
+      case 502:
+        errorMessage = 'The selected model is currently unavailable. Please try again later.';
+        break;
+      case 503:
+        errorMessage = 'No available model providers. Please try again later.';
+        break;
+    }
+
+    dispatch(setError(errorMessage));
+  };
+
   const processStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, assistantMessage: Message) => {
     try {
       let accumulatedContent = '';
+      let noContentRetries = 0;
       
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          if (!accumulatedContent && noContentRetries < MAX_RETRIES) {
+            noContentRetries++;
+            await delay(RETRY_DELAY);
+            continue;
+          }
+          break;
+        }
 
-        // Convert the chunk to text
         const chunk = new TextDecoder().decode(value);
         const lines = chunk.split('\n');
         
         for (const line of lines) {
-          // Skip SSE comments
           if (line.startsWith(':')) continue;
           
           if (line.startsWith('data: ')) {
@@ -69,7 +143,6 @@ const ChatInterface = () => {
                 }));
               }
 
-              // Handle any errors in the response
               const error = parsed.choices[0]?.error;
               if (error) {
                 throw new Error(error.message);
@@ -83,6 +156,10 @@ const ChatInterface = () => {
           }
         }
       }
+
+      if (!accumulatedContent) {
+        throw new Error('No content was generated after multiple retries');
+      }
     } catch (error) {
       console.error('Error processing stream:', error);
       if (error instanceof Error) {
@@ -95,6 +172,9 @@ const ChatInterface = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    const canProceed = await checkRateLimit();
+    if (!canProceed) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -115,54 +195,71 @@ const ChatInterface = () => {
     };
     dispatch(addMessage(assistantMessage));
 
-    try {
-      const allMessages = [
-        ...messages.map((msg: Message) => formatMessageForAPI(msg)),
-        formatMessageForAPI(userMessage)
-      ];
+    let retries = 0;
+    while (retries < MAX_RETRIES) {
+      try {
+        const allMessages = [
+          ...messages.map((msg: Message) => formatMessageForAPI(msg)),
+          formatMessageForAPI(userMessage)
+        ];
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-          'HTTP-Referer': SITE_URL,
-          'X-Title': SITE_NAME,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'anthropic/claude-3-haiku',
-          messages: allMessages,
-          stream: true,
-          temperature: 0.7,
-          max_tokens: 1000,
-          top_p: 0.9,
-          presence_penalty: 0.1,
-          frequency_penalty: 0.1,
-          transforms: ['middle-out'] // Enable middle-out compression for long conversations
-        }),
-      });
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+            'HTTP-Referer': SITE_URL,
+            'X-Title': SITE_NAME,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'anthropic/claude-3-haiku',
+            messages: allMessages,
+            stream: true,
+            temperature: 0.7,
+            max_tokens: 1000,
+            top_p: 0.9,
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1,
+            transforms: ['middle-out']
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.error?.message || 
-          `API request failed with status ${response.status}`
-        );
+        if (!response.ok) {
+          const errorData: OpenRouterErrorResponse = await response.json();
+          handleError(errorData);
+          
+          // Only retry on specific error codes
+          if ([408, 502, 503].includes(errorData.error.code)) {
+            retries++;
+            if (retries < MAX_RETRIES) {
+              await delay(RETRY_DELAY);
+              continue;
+            }
+          }
+          return;
+        }
+
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
+
+        const reader = response.body.getReader();
+        await processStream(reader, assistantMessage);
+        break;
+
+      } catch (error) {
+        console.error('Chat error:', error);
+        retries++;
+        
+        if (retries === MAX_RETRIES) {
+          dispatch(setError(error instanceof Error ? error.message : 'An error occurred'));
+        } else {
+          await delay(RETRY_DELAY);
+        }
       }
-
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
-
-      const reader = response.body.getReader();
-      await processStream(reader, assistantMessage);
-
-    } catch (error) {
-      dispatch(setError(error instanceof Error ? error.message : 'An error occurred'));
-      console.error('Chat error:', error);
-    } finally {
-      dispatch(setLoading(false));
     }
+
+    dispatch(setLoading(false));
   };
 
   return (
