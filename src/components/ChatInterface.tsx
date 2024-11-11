@@ -391,6 +391,7 @@ const ChatInterface = () => {
           variant="contained"
           disabled={isLoading || !input.trim()}
           endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
+          sx={{ minWidth: '120px' }}
         >
           Send
         </Button>
