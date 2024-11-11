@@ -195,8 +195,13 @@ const ChatInterface = () => {
               onSubmit={handleSubmit}
               onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
               onToggleDocumentMode={() => {
+                if (!isDocumentMode) {
+                  // When switching to document mode, set some initial content
+                  setDocumentContent(messages.length > 0 ? 
+                    messages[messages.length - 1].content : 
+                    'Enter or paste your text here to begin adding comments.');
+                }
                 setIsDocumentMode(!isDocumentMode);
-                setDocumentContent('');
                 setDocumentComments([]);
               }}
             />

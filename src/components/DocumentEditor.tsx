@@ -124,21 +124,19 @@ const DocumentEditor = ({
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
 
-    // Find the segment containing the selection
-    let start = -1;
-    let end = -1;
+    const range = selection.getRangeAt(0);
+    const preSelectionRange = range.cloneRange();
+    preSelectionRange.selectNodeContents(range.startContainer.parentElement!);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
+    
+    const segmentElement = range.startContainer.parentElement!;
+    const segmentIndex = Array.from(segmentElement.parentElement!.children).indexOf(segmentElement);
+    const segment = segments[segmentIndex];
+    
+    if (segment) {
+      const start = segment.start + preSelectionRange.toString().length;
+      const end = start + selectedText.length;
 
-    segments.forEach(segment => {
-      const segmentContent = segment.text;
-      const selectionIndex = segmentContent.indexOf(selectedText);
-      
-      if (selectionIndex !== -1) {
-        start = segment.start + selectionIndex;
-        end = start + selectedText.length;
-      }
-    });
-
-    if (start !== -1 && end !== -1) {
       const newSelection: Selection = {
         id: Math.random().toString(36).substr(2, 9),
         text: selectedText,
@@ -228,45 +226,47 @@ const DocumentEditor = ({
               sx={{ 
                 position: 'relative',
                 mb: 1,
-                '&:hover .edit-button': {
-                  opacity: 1
-                }
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1
               }}
             >
-              {segment.isEditing ? (
-                <TextField
-                  fullWidth
-                  multiline
-                  value={segment.text}
-                  onChange={(e) => handleSegmentEdit(index, e.target.value)}
-                  autoFocus
-                  sx={{ mb: 1 }}
-                />
-              ) : (
-                <Typography 
-                  component="div"
-                  sx={{ 
-                    whiteSpace: 'pre-wrap',
-                    p: 1,
-                    borderRadius: 1,
-                    '&:hover': {
-                      bgcolor: 'action.hover'
-                    }
-                  }}
-                >
-                  {segment.text}
-                </Typography>
-              )}
+              <Box sx={{ flex: 1 }}>
+                {segment.isEditing ? (
+                  <TextField
+                    fullWidth
+                    multiline
+                    value={segment.text}
+                    onChange={(e) => handleSegmentEdit(index, e.target.value)}
+                    autoFocus
+                    sx={{ mb: 1 }}
+                  />
+                ) : (
+                  <Typography 
+                    component="div"
+                    sx={{ 
+                      whiteSpace: 'pre-wrap',
+                      p: 1,
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: 'action.hover'
+                      }
+                    }}
+                  >
+                    {segment.text}
+                  </Typography>
+                )}
+              </Box>
               <IconButton
-                className="edit-button"
                 size="small"
                 onClick={() => toggleSegmentEdit(index)}
                 sx={{
-                  position: 'absolute',
-                  right: -36,
-                  top: 0,
-                  opacity: 0,
-                  transition: 'opacity 0.2s'
+                  flexShrink: 0,
+                  visibility: 'visible',
+                  opacity: 0.7,
+                  '&:hover': {
+                    opacity: 1
+                  }
                 }}
               >
                 {segment.isEditing ? <SaveIcon /> : <EditIcon />}
