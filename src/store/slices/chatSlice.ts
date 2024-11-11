@@ -31,6 +31,12 @@ const chatSlice = createSlice({
       state.messages.push(action.payload);
       saveMessagesToStorage(state.messages);
     },
+    updateLastMessage: (state: ChatState, action: PayloadAction<Message>) => {
+      if (state.messages.length > 0) {
+        state.messages[state.messages.length - 1] = action.payload;
+        saveMessagesToStorage(state.messages);
+      }
+    },
     setError: (state: ChatState, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
@@ -41,7 +47,14 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setLoading, addMessage, setError, clearMessages } = chatSlice.actions;
+export const { 
+  setLoading, 
+  addMessage, 
+  updateLastMessage, 
+  setError, 
+  clearMessages 
+} = chatSlice.actions;
+
 export default chatSlice.reducer;
 
 // Utility function to create a new message

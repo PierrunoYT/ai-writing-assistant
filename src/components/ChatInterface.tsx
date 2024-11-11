@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, TextField, Button, Paper, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { addMessage, setLoading, setError } from '../store/slices/chatSlice';
+import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message } from '../types';
@@ -14,6 +14,45 @@ const ChatInterface = () => {
   const [input, setInput] = useState('');
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
+
+  const processStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, assistantMessage: Message) => {
+    try {
+      let accumulatedContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Convert the chunk to text
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content || '';
+              if (content) {
+                accumulatedContent += content;
+                dispatch(updateLastMessage({
+                  ...assistantMessage,
+                  content: accumulatedContent
+                }));
+              }
+            } catch (e) {
+              console.error('Error parsing chunk:', e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error processing stream:', error);
+      throw error;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +68,14 @@ const ChatInterface = () => {
     dispatch(addMessage(userMessage));
     dispatch(setLoading(true));
     setInput('');
+
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: '',
+      role: 'assistant',
+      timestamp: Date.now() + 1,
+    };
+    dispatch(addMessage(assistantMessage));
 
     try {
       const allMessages = [
@@ -53,6 +100,7 @@ const ChatInterface = () => {
         body: JSON.stringify({
           model: 'anthropic/claude-3-haiku',
           messages: allMessages,
+          stream: true
         }),
       });
 
@@ -64,20 +112,13 @@ const ChatInterface = () => {
         );
       }
 
-      const data = await response.json();
-      
-      if (!data.choices?.[0]?.message?.content) {
-        throw new Error('Invalid response format from API');
+      if (!response.body) {
+        throw new Error('Response body is null');
       }
 
-      const assistantMessage: Message = {
-        id: Date.now().toString(),
-        content: data.choices[0].message.content,
-        role: 'assistant',
-        timestamp: Date.now(),
-      };
+      const reader = response.body.getReader();
+      await processStream(reader, assistantMessage);
 
-      dispatch(addMessage(assistantMessage));
     } catch (error) {
       dispatch(setError(error instanceof Error ? error.message : 'An error occurred'));
       console.error('Chat error:', error);
