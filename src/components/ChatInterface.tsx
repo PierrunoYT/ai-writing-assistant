@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ChatIcon from '@mui/icons-material/Chat';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { Box, Paper } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { addMessage, setLoading, setError, updateLastMessage, clearMessages } from '../store/slices/chatSlice';
-import SendIcon from '@mui/icons-material/Send';
+import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
 import MessageList from './MessageList';
-import { Message, StreamResponse, APIMessage, MessageContent, OpenRouterErrorResponse, KeyInfo } from '../types';
-import { systemPrompts } from '../prompts/systemPrompts';
+import ChatControls from './ChatControls';
+import SystemPromptDialog from './SystemPromptDialog';
 import DocumentEditor from './DocumentEditor';
+import { Message, OpenRouterErrorResponse } from '../types';
+import { systemPrompts } from '../prompts/systemPrompts';
+import { checkRateLimit, sendChatRequest, handleAPIError } from '../services/api';
 
 interface Comment {
   id: string;
@@ -23,187 +21,28 @@ interface Comment {
   timestamp: number;
 }
 
-type NewComment = Omit<Comment, 'id' | 'timestamp'>;
-
-const SITE_URL = window.location.origin;
-const SITE_NAME = 'Writing Assistant';
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000;
-
-const formatMessageForAPI = (msg: Message): APIMessage => {
-  if (msg.role === 'system' || msg.content.length > 1000) {
-    const content: MessageContent[] = [{
-      type: 'text',
-      text: msg.content,
-      cache_control: {
-        type: 'ephemeral'
-      }
-    }];
-    return {
-      role: msg.role,
-      content
-    };
-  }
-  
-  return {
-    role: msg.role,
-    content: msg.content
-  };
-};
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 const ChatInterface = () => {
   const [input, setInput] = useState('');
   const [selectedPromptId, setSelectedPromptId] = useState('default');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const [isDocumentMode, setIsDocumentMode] = useState(false);
-  const [documentState, setDocumentState] = useState({
-    content: '',
-    comments: [] as Comment[],
-    isEditMode: true
-  });
+  const [documentContent, setDocumentContent] = useState('');
+  const [documentComments, setDocumentComments] = useState<Comment[]>([]);
   
-  const currentPrompt = systemPrompts.find((p: { id: string }) => p.id === selectedPromptId)?.prompt || customPrompt;
+  const currentPrompt = systemPrompts.find((p) => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
-
-  const checkRateLimit = async (): Promise<boolean> => {
-    try {
-      const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to check rate limit');
-      }
-
-      const keyInfo: KeyInfo = await response.json();
-      const { usage, limit } = keyInfo.data;
-
-      if (limit !== null && usage >= limit) {
-        dispatch(setError('API key has reached its credit limit'));
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Rate limit check error:', error);
-      return true; // Continue if rate limit check fails
-    }
-  };
-
-  const handleError = (error: OpenRouterErrorResponse) => {
-    const { code, message, metadata } = error.error;
-    let errorMessage = message;
-
-    switch (code) {
-      case 400:
-        errorMessage = 'Invalid request. Please check your input and try again.';
-        break;
-      case 401:
-        errorMessage = 'Authentication failed. Please check your API key.';
-        break;
-      case 402:
-        errorMessage = 'Insufficient credits. Please add more credits to continue.';
-        break;
-      case 403:
-        if (metadata?.reasons) {
-          errorMessage = `Content moderation error: ${metadata.reasons.join(', ')}`;
-          if (metadata.flagged_input) {
-            errorMessage += `\nFlagged content: "${metadata.flagged_input}"`;
-          }
-        }
-        break;
-      case 408:
-        errorMessage = 'Request timed out. Please try again.';
-        break;
-      case 429:
-        errorMessage = 'Rate limit exceeded. Please wait before trying again.';
-        break;
-      case 502:
-        errorMessage = 'The selected model is currently unavailable. Please try again later.';
-        break;
-      case 503:
-        errorMessage = 'No available model providers. Please try again later.';
-        break;
-    }
-
-    dispatch(setError(errorMessage));
-  };
-
-  const processStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, assistantMessage: Message) => {
-    try {
-      let accumulatedContent = '';
-      let noContentRetries = 0;
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          if (!accumulatedContent && noContentRetries < MAX_RETRIES) {
-            noContentRetries++;
-            await delay(RETRY_DELAY);
-            continue;
-          }
-          break;
-        }
-
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith(':')) continue;
-          
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            
-            try {
-              const parsed = JSON.parse(data) as StreamResponse;
-              const content = parsed.choices[0]?.delta?.content || '';
-              if (content) {
-                accumulatedContent += content;
-                dispatch(updateLastMessage({
-                  ...assistantMessage,
-                  content: accumulatedContent
-                }));
-              }
-
-              const error = parsed.choices[0]?.error;
-              if (error) {
-                throw new Error(error.message);
-              }
-            } catch (e) {
-              console.error('Error parsing chunk:', e);
-              if (e instanceof Error) {
-                dispatch(setError(e.message));
-              }
-            }
-          }
-        }
-      }
-
-      if (!accumulatedContent) {
-        throw new Error('No content was generated after multiple retries');
-      }
-    } catch (error) {
-      console.error('Error processing stream:', error);
-      if (error instanceof Error) {
-        dispatch(setError(error.message));
-      }
-      throw error;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const canProceed = await checkRateLimit();
-    if (!canProceed) return;
+    if (!canProceed) {
+      dispatch(setError('API key has reached its credit limit'));
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -225,74 +64,76 @@ const ChatInterface = () => {
     dispatch(addMessage(assistantMessage));
 
     let retries = 0;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000;
+
     while (retries < MAX_RETRIES) {
       try {
+        const systemMessage: Message = {
+          id: 'system',
+          content: currentPrompt,
+          role: 'system',
+          timestamp: Date.now()
+        };
+
         const allMessages = [
-          {
-            role: 'system' as const,
-            content: currentPrompt
-          },
-          ...messages.map((msg: Message) => formatMessageForAPI(msg)),
-          formatMessageForAPI(userMessage)
+          systemMessage,
+          ...messages,
+          userMessage
         ];
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
-            'HTTP-Referer': SITE_URL,
-            'X-Title': SITE_NAME,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'anthropic/claude-3-5-haiku',
-            messages: allMessages,
-            stream: true,
-            temperature: 0.7,
-            max_tokens: 1000,
-            top_p: 0.9,
-            presence_penalty: 0.1,
-            frequency_penalty: 0.1,
-            transforms: ['middle-out']
-          }),
+        await sendChatRequest(allMessages, (content) => {
+          dispatch(updateLastMessage({
+            ...assistantMessage,
+            content
+          }));
         });
-
-        if (!response.ok) {
-          const errorData: OpenRouterErrorResponse = await response.json();
-          handleError(errorData);
-          
-          // Only retry on specific error codes
-          if ([408, 502, 503].includes(errorData.error.code)) {
-            retries++;
-            if (retries < MAX_RETRIES) {
-              await delay(RETRY_DELAY);
-              continue;
-            }
-          }
-          return;
-        }
-
-        if (!response.body) {
-          throw new Error('Response body is null');
-        }
-
-        const reader = response.body.getReader();
-        await processStream(reader, assistantMessage);
         break;
-
       } catch (error) {
         console.error('Chat error:', error);
         retries++;
         
+        if (error && typeof error === 'object' && 'error' in error) {
+          const apiError = error as OpenRouterErrorResponse;
+          dispatch(setError(handleAPIError(apiError)));
+          if (![408, 502, 503].includes(apiError.error.code)) {
+            break;
+          }
+        }
+        
         if (retries === MAX_RETRIES) {
           dispatch(setError(error instanceof Error ? error.message : 'An error occurred'));
         } else {
-          await delay(RETRY_DELAY);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         }
       }
     }
 
     dispatch(setLoading(false));
+  };
+
+  const handleAddComment = (comment: Omit<Comment, 'id' | 'timestamp'>) => {
+    const newComment: Comment = {
+      ...comment,
+      id: Date.now().toString(),
+      timestamp: Date.now()
+    };
+    setDocumentComments([...documentComments, newComment]);
+  };
+
+  const handleDeleteComment = (id: string) => {
+    setDocumentComments(documentComments.filter(comment => comment.id !== id));
+  };
+
+  const handleDocumentReady = () => {
+    const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${documentContent}\n\nComments:\n${documentComments.map(c => (
+      `- At "${documentContent.substring(c.position.start, c.position.end)}": ${c.content}`
+    )).join('\n')}`;
+    
+    setInput(prompt);
+    setIsDocumentMode(false);
+    const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+    handleSubmit(formEvent);
   };
 
   return (
@@ -320,183 +161,43 @@ const ChatInterface = () => {
         <MessageList messages={messages} />
       </Paper>
 
-      <Dialog
+      <SystemPromptDialog
         open={isPromptDialogOpen}
         onClose={() => setIsPromptDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>System Prompt</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField
-              select
-              fullWidth
-              label="Select Prompt Template"
-              value={selectedPromptId}
-              onChange={(e) => setSelectedPromptId(e.target.value)}
-              SelectProps={{
-                native: true,
-              }}
-            >
-              {systemPrompts.map((prompt) => (
-                <option key={prompt.id} value={prompt.id}>
-                  {prompt.name}
-                </option>
-              ))}
-              <option value="custom">Custom Prompt</option>
-            </TextField>
-            
-            {selectedPromptId === 'custom' ? (
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Enter custom system prompt..."
-              />
-            ) : (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {systemPrompts.find(p => p.id === selectedPromptId)?.description}
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  value={currentPrompt}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  sx={{ mt: 1 }}
-                />
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsPromptDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        selectedPromptId={selectedPromptId}
+        setSelectedPromptId={setSelectedPromptId}
+        customPrompt={customPrompt}
+        setCustomPrompt={setCustomPrompt}
+        systemPrompts={systemPrompts}
+        currentPrompt={currentPrompt}
+      />
 
       {isDocumentMode ? (
         <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
-          <DocumentMode
-            onSwitchMode={() => {
-              setIsDocumentMode(false);
-              setDocumentState({
-                content: '',
-                comments: [],
-                isEditMode: true
-              });
-            }}
-          onSubmitDocument={(content, comments) => {
-            const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${content}\n\nComments:\n${comments.map(c => (
-              `- At "${content.substring(c.position.start, c.position.end)}": ${c.content}`
-            )).join('\n')}`;
-            
-            setInput(prompt);
-            setIsDocumentMode(false);
-            const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-            handleSubmit(formEvent);
+          <DocumentEditor
+            content={documentContent}
+            comments={documentComments}
+            onAddComment={handleAddComment}
+            onDeleteComment={handleDeleteComment}
+            onReady={handleDocumentReady}
+            onChange={setDocumentContent}
+          />
+        </Box>
+      ) : (
+        <ChatControls
+          input={input}
+          setInput={setInput}
+          isLoading={isLoading}
+          hasMessages={messages.length > 0}
+          isDocumentMode={isDocumentMode}
+          onSubmit={handleSubmit}
+          onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
+          onToggleDocumentMode={() => {
+            setIsDocumentMode(!isDocumentMode);
+            setDocumentContent('');
+            setDocumentComments([]);
           }}
         />
-      ) : (
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{
-            display: 'flex',
-            gap: 1,
-          }}
-        >
-          <TextField
-            fullWidth
-            multiline
-            maxRows={4}
-            value={input}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-            placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-            disabled={isLoading}
-            sx={{ bgcolor: 'background.paper' }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (input.trim() && !isLoading) {
-                  const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-                  handleSubmit(formEvent);
-                }
-              }
-            }}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={isLoading || !input.trim()}
-            endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
-            sx={{ minWidth: '120px' }}
-          >
-            Send
-          </Button>
-          {messages.length > 0 && (
-            <Tooltip title="Clear chat">
-              <IconButton
-                onClick={() => dispatch(clearMessages())}
-                color="error"
-                disabled={isLoading}
-                sx={{ 
-                  borderRadius: '50%',
-                  '&:hover': {
-                    bgcolor: (theme) => theme.palette.error.light,
-                    color: 'white'
-                  }
-                }}
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title="System Prompt">
-            <IconButton
-              onClick={() => setIsPromptDialogOpen(true)}
-              color="primary"
-              disabled={isLoading}
-              sx={{ 
-                borderRadius: '50%',
-                '&:hover': {
-                  bgcolor: (theme) => theme.palette.primary.light,
-                  color: 'white'
-                }
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={isDocumentMode ? "Switch to Chat Mode" : "Switch to Document Mode"}>
-            <IconButton
-              onClick={() => {
-                setIsDocumentMode(!isDocumentMode);
-                setDocumentState({
-                  content: '',
-                  comments: [],
-                  isEditMode: true
-                });
-              }}
-              color="primary"
-              disabled={isLoading}
-              sx={{ 
-                borderRadius: '50%',
-                '&:hover': {
-                  bgcolor: (theme) => theme.palette.primary.light,
-                  color: 'white'
-                }
-              }}
-            >
-              {isDocumentMode ? <ChatIcon /> : <DescriptionIcon />}
-            </IconButton>
-          </Tooltip>
-        </Box>
       )}
     </Box>
   );

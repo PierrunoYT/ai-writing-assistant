@@ -1,27 +1,28 @@
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography } from '@mui/material';
+import React from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, TextField, Button, Typography } from '@mui/material';
 import { SystemPrompt } from '../types';
 
 interface SystemPromptDialogProps {
   open: boolean;
   onClose: () => void;
   selectedPromptId: string;
+  setSelectedPromptId: (id: string) => void;
   customPrompt: string;
+  setCustomPrompt: (prompt: string) => void;
   systemPrompts: SystemPrompt[];
-  onPromptSelect: (id: string) => void;
-  onCustomPromptChange: (prompt: string) => void;
   currentPrompt: string;
 }
 
-const SystemPromptDialog = ({
+const SystemPromptDialog: React.FC<SystemPromptDialogProps> = ({
   open,
   onClose,
   selectedPromptId,
+  setSelectedPromptId,
   customPrompt,
+  setCustomPrompt,
   systemPrompts,
-  onPromptSelect,
-  onCustomPromptChange,
-  currentPrompt
-}: SystemPromptDialogProps) => {
+  currentPrompt,
+}) => {
   return (
     <Dialog
       open={open}
@@ -37,7 +38,7 @@ const SystemPromptDialog = ({
             fullWidth
             label="Select Prompt Template"
             value={selectedPromptId}
-            onChange={(e) => onPromptSelect(e.target.value)}
+            onChange={(e) => setSelectedPromptId(e.target.value)}
             SelectProps={{
               native: true,
             }}
@@ -56,7 +57,7 @@ const SystemPromptDialog = ({
               multiline
               rows={4}
               value={customPrompt}
-              onChange={(e) => onCustomPromptChange(e.target.value)}
+              onChange={(e) => setCustomPrompt(e.target.value)}
               placeholder="Enter custom system prompt..."
             />
           ) : (
