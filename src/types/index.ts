@@ -74,6 +74,13 @@ export interface KeyInfo {
   };
 }
 
+export interface SystemPrompt {
+  id: string;
+  name: string;
+  description: string;
+  prompt: string;
+}
+
 export interface StreamResponse {
   id: string;
   choices: StreamingChoice[];

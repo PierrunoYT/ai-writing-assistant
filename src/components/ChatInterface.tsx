@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,8 +39,12 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('You are a helpful AI assistant.');
+  const [selectedPromptId, setSelectedPromptId] = useState('default');
+  const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
+  const { systemPrompts } = require('../prompts/systemPrompts');
+  
+  const currentPrompt = systemPrompts.find(p => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
 
@@ -205,7 +209,7 @@ const ChatInterface = () => {
         const allMessages = [
           {
             role: 'system' as const,
-            content: systemPrompt
+            content: currentPrompt
           },
           ...messages.map((msg: Message) => formatMessageForAPI(msg)),
           formatMessageForAPI(userMessage)
@@ -303,15 +307,52 @@ const ChatInterface = () => {
       >
         <DialogTitle>System Prompt</DialogTitle>
         <DialogContent>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            placeholder="Enter system prompt..."
-            sx={{ mt: 2 }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              select
+              fullWidth
+              label="Select Prompt Template"
+              value={selectedPromptId}
+              onChange={(e) => setSelectedPromptId(e.target.value)}
+              SelectProps={{
+                native: true,
+              }}
+            >
+              {systemPrompts.map((prompt) => (
+                <option key={prompt.id} value={prompt.id}>
+                  {prompt.name}
+                </option>
+              ))}
+              <option value="custom">Custom Prompt</option>
+            </TextField>
+            
+            {selectedPromptId === 'custom' ? (
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="Enter custom system prompt..."
+              />
+            ) : (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {systemPrompts.find(p => p.id === selectedPromptId)?.description}
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={currentPrompt}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsPromptDialogOpen(false)}>Close</Button>
