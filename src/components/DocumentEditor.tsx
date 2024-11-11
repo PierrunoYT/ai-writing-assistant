@@ -35,25 +35,32 @@ const DocumentEditor = ({
 
   const handleTextSelect = () => {
     if (textFieldRef.current) {
-      const start = textFieldRef.current.selectionStart;
-      const end = textFieldRef.current.selectionEnd;
-      const selected = content.substring(start, end);
-      setSelectedText(selected);
+      const start = textFieldRef.current.selectionStart ?? 0;
+      const end = textFieldRef.current.selectionEnd ?? 0;
+      
+      if (start !== end) {
+        const selected = content.substring(start, end);
+        setSelectedText(selected);
+      } else {
+        setSelectedText('');
+      }
     }
   };
 
   const handleAddComment = () => {
     if (textFieldRef.current && selectedText && commentInput) {
-      const start = textFieldRef.current.selectionStart;
-      const end = textFieldRef.current.selectionEnd;
+      const start = textFieldRef.current.selectionStart ?? 0;
+      const end = textFieldRef.current.selectionEnd ?? 0;
       
-      onAddComment({
-        content: commentInput,
-        position: { start, end }
-      });
+      if (start !== end) {
+        onAddComment({
+          content: commentInput,
+          position: { start, end }
+        });
 
-      setSelectedText('');
-      setCommentInput('');
+        setSelectedText('');
+        setCommentInput('');
+      }
     }
   };
 
