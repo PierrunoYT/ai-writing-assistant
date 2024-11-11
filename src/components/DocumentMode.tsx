@@ -65,10 +65,10 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
   return (
     <Box sx={{ 
       display: 'flex', 
-      flexDirection: 'column', 
-      gap: 2,
-      height: '100vh',
-      p: 3,
+      flexDirection: 'column',
+      height: '100%',
+      maxHeight: '100vh',
+      p: 2,
       bgcolor: theme.palette.background.default
     }}>
       <Box sx={{ 
@@ -96,15 +96,17 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
 
       <Box sx={{ 
         display: 'flex', 
-        gap: 3, 
-        height: 'calc(100vh - 120px)',
-        flex: 1
+        gap: 2,
+        flex: 1,
+        minHeight: 0
       }}>
         <Paper 
           elevation={3} 
           sx={{ 
             flex: 2,
-            p: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            p: 2,
             borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             '&:hover': {
@@ -115,14 +117,13 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
           <TextField
             fullWidth
             multiline
-            minRows={25}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onMouseUp={handleTextSelect}
             placeholder="Enter your text here..."
             variant="outlined"
             sx={{
-              height: '100%',
+              flex: 1,
               '& .MuiOutlinedInput-root': {
                 height: '100%',
                 '& textarea': {
@@ -130,7 +131,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
                   overflowY: 'auto !important',
                   lineHeight: '1.6',
                   fontSize: '1rem',
-                  padding: 2,
                   '&::selection': {
                     backgroundColor: theme.palette.primary.light,
                     color: theme.palette.primary.contrastText
@@ -145,11 +145,10 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
           elevation={3} 
           sx={{ 
             flex: 1,
-            p: 3,
-            borderRadius: 2,
-            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
+            p: 2,
+            borderRadius: 2,
             bgcolor: theme.palette.background.paper,
             '&:hover': {
               boxShadow: theme.shadows[6]
@@ -160,7 +159,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
             display: 'flex', 
             alignItems: 'center', 
             gap: 1,
-            mb: 3
+            mb: 2
           }}>
             <CommentIcon color="primary" />
             <Typography variant="h6" color="primary" fontWeight="medium">
@@ -170,7 +169,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
           
           {selectedText && (
             <Box sx={{ 
-              mb: 3,
+              mb: 2,
               p: 2,
               bgcolor: theme.palette.action.hover,
               borderRadius: 1
@@ -204,6 +203,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
           <Box sx={{ 
             flex: 1,
             overflowY: 'auto',
+            minHeight: 0,
             pr: 1,
             '&::-webkit-scrollbar': {
               width: '8px',
