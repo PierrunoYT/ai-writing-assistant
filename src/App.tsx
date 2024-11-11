@@ -39,10 +39,7 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Layout />
-      </ThemeProvider>
+      <AppContent />
     </Provider>
   );
 }

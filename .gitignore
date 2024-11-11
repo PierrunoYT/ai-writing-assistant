@@ -32,3 +32,4 @@ dist-ssr
 # Firebase
 .firebase/
 firebase-debug.log
+.aider*
