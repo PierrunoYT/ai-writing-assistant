@@ -138,14 +138,15 @@ const ChatInterface = () => {
 
   return (
     <Box sx={{ 
-      height: 'calc(100vh - 140px)', 
+      height: 'calc(100vh - 180px)', // Increased space for bottom controls
       display: 'flex', 
       flexDirection: 'column',
-      gap: 3,
+      gap: 2,
       maxWidth: '1200px',
       mx: 'auto',
       width: '100%',
-      px: { xs: 2, sm: 4 }
+      px: { xs: 2, sm: 4 },
+      pb: 3 // Added bottom padding
     }}>
       {isDocumentMode ? (
         <Box sx={{ 
@@ -191,20 +192,22 @@ const ChatInterface = () => {
             currentPrompt={currentPrompt}
           />
 
-          <ChatControls
-            input={input}
-            setInput={setInput}
-            isLoading={isLoading}
-            hasMessages={messages.length > 0}
-            isDocumentMode={isDocumentMode}
-            onSubmit={handleSubmit}
-            onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
-            onToggleDocumentMode={() => {
-              setIsDocumentMode(!isDocumentMode);
-              setDocumentContent('');
-              setDocumentComments([]);
-            }}
-          />
+          <Box sx={{ mt: 'auto' }}>
+            <ChatControls
+              input={input}
+              setInput={setInput}
+              isLoading={isLoading}
+              hasMessages={messages.length > 0}
+              isDocumentMode={isDocumentMode}
+              onSubmit={handleSubmit}
+              onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
+              onToggleDocumentMode={() => {
+                setIsDocumentMode(!isDocumentMode);
+                setDocumentContent('');
+                setDocumentComments([]);
+              }}
+            />
+          </Box>
         </>
       )}
     </Box>
