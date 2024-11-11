@@ -5,7 +5,7 @@ import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
-import { Message } from '../types';
+import { Message, StreamResponse } from '../types';
 
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Writing Assistant';
@@ -28,13 +28,16 @@ const ChatInterface = () => {
         const lines = chunk.split('\n');
         
         for (const line of lines) {
+          // Skip SSE comments
+          if (line.startsWith(':')) continue;
+          
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') continue;
             
             try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content || '';
+              const parsed = JSON.parse(data) as StreamResponse;
+              const content = parsed.choices[0]?.delta?.content || '';
               if (content) {
                 accumulatedContent += content;
                 dispatch(updateLastMessage({
@@ -42,14 +45,26 @@ const ChatInterface = () => {
                   content: accumulatedContent
                 }));
               }
+
+              // Handle any errors in the response
+              const error = parsed.choices[0]?.error;
+              if (error) {
+                throw new Error(error.message);
+              }
             } catch (e) {
               console.error('Error parsing chunk:', e);
+              if (e instanceof Error) {
+                dispatch(setError(e.message));
+              }
             }
           }
         }
       }
     } catch (error) {
       console.error('Error processing stream:', error);
+      if (error instanceof Error) {
+        dispatch(setError(error.message));
+      }
       throw error;
     }
   };
@@ -100,7 +115,12 @@ const ChatInterface = () => {
         body: JSON.stringify({
           model: 'anthropic/claude-3-haiku',
           messages: allMessages,
-          stream: true
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 1000,
+          top_p: 0.9,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1
         }),
       });
 

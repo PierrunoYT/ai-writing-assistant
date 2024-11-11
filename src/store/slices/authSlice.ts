@@ -20,6 +20,7 @@ const loadUserFromStorage = (): User | null => {
 
 const initialState: AuthState = {
   user: loadUserFromStorage(),
+  isAuthenticated: !!loadUserFromStorage(),
   isLoading: false,
   error: null,
 };
@@ -30,6 +31,7 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state: AuthState, action: PayloadAction<User | null>) => {
       state.user = action.payload;
+      state.isAuthenticated = !!action.payload;
       saveUserToStorage(action.payload);
     },
     setLoading: (state: AuthState, action: PayloadAction<boolean>) => {
@@ -40,6 +42,7 @@ const authSlice = createSlice({
     },
     clearAuth: (state: AuthState) => {
       state.user = null;
+      state.isAuthenticated = false;
       state.error = null;
       saveUserToStorage(null);
     },
