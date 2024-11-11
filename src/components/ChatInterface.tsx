@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Paper, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
+import { addMessage, setLoading, setError, updateLastMessage, clearMessages } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message, StreamResponse, APIMessage, MessageContent, OpenRouterErrorResponse, KeyInfo } from '../types';
@@ -271,9 +272,21 @@ const ChatInterface = () => {
           mb: 2, 
           p: 2, 
           overflow: 'auto',
-          bgcolor: 'background.paper' 
+          bgcolor: 'background.paper',
+          position: 'relative'
         }}
       >
+        {messages.length > 0 && (
+          <Tooltip title="Clear chat">
+            <IconButton
+              onClick={() => dispatch(clearMessages())}
+              sx={{ position: 'absolute', top: 8, right: 8 }}
+              size="small"
+            >
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Tooltip>
+        )}
         <MessageList messages={messages} />
       </Paper>
 
