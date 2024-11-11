@@ -212,7 +212,7 @@ const ChatInterface = () => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'anthropic/claude-3-haiku',
+            model: 'anthropic/claude-3-5-haiku',
             messages: allMessages,
             stream: true,
             temperature: 0.7,
