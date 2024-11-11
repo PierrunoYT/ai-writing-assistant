@@ -26,7 +26,10 @@ const MessageList = ({ messages }: MessageListProps) => {
                 : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
             '&:hover': {
               transform: 'translateY(-1px)',
-              transition: 'transform 0.2s ease-in-out',
+              transition: 'all 0.2s ease-in-out',
+              bgcolor: (theme) => message.role === 'user' 
+                ? theme.palette.primary.main 
+                : theme.palette.action.hover,
             },
             position: 'relative',
           }}
