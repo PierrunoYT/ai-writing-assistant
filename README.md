@@ -1,6 +1,6 @@
 # AI Writing Assistant
 
-A modern AI writing assistant built with React, TypeScript, and Firebase, featuring real-time chat with OpenRouter AI.
+A modern AI writing assistant built with React, TypeScript, and local storage, featuring real-time chat with OpenRouter AI.
 
 ## Features
 
@@ -9,23 +9,20 @@ A modern AI writing assistant built with React, TypeScript, and Firebase, featur
 - Dark mode UI
 - Responsive design
 - Message history
-- Firebase backend integration
+- Local storage persistence
 
 ## Tech Stack
 
 - Frontend: React + TypeScript
 - State Management: Redux Toolkit
 - UI Framework: Material-UI (MUI)
-- Backend: Firebase Services
-- Authentication: Firebase Auth
-- Database: Firestore
+- Storage: Local Storage
 - AI Integration: OpenRouter API
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
 - npm or yarn
-- Firebase account
 - OpenRouter API key
 
 ## Setup
@@ -43,12 +40,6 @@ npm install
 
 3. Create a `.env` file in the root directory and add your configuration:
 ```env
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_firebase_app_id
 VITE_OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
@@ -62,7 +53,6 @@ npm run dev
 ```
 src/
 ├── components/        # React components
-├── config/           # Configuration files
 ├── store/            # Redux store and slices
 ├── types/            # TypeScript type definitions
 ├── App.tsx           # Main App component
