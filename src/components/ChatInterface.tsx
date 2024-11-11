@@ -380,7 +380,8 @@ const ChatInterface = () => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               if (input.trim() && !isLoading) {
-                handleSubmit(e as React.FormEvent<HTMLFormElement>);
+                const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+                handleSubmit(formEvent);
               }
             }
           }}
