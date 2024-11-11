@@ -494,7 +494,14 @@ const ChatInterface = () => {
           </Tooltip>
           <Tooltip title={isDocumentMode ? "Switch to Chat Mode" : "Switch to Document Mode"}>
             <IconButton
-              onClick={() => setIsDocumentMode(!isDocumentMode)}
+              onClick={() => {
+                setIsDocumentMode(!isDocumentMode);
+                setDocumentState({
+                  content: '',
+                  comments: [],
+                  isEditMode: true
+                });
+              }}
               color="primary"
               disabled={isLoading}
               sx={{ 
