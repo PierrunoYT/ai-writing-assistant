@@ -11,6 +11,19 @@ import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message, StreamResponse, APIMessage, MessageContent, OpenRouterErrorResponse, KeyInfo } from '../types';
 import { systemPrompts } from '../prompts/systemPrompts';
+import DocumentEditor from './DocumentEditor';
+
+interface Comment {
+  id: string;
+  content: string;
+  position: {
+    start: number;
+    end: number;
+  };
+  timestamp: number;
+}
+
+type NewComment = Omit<Comment, 'id' | 'timestamp'>;
 
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Writing Assistant';
@@ -372,7 +385,7 @@ const ChatInterface = () => {
           <DocumentEditor
             content={documentState.content}
             comments={documentState.comments}
-            onAddComment={(comment) => {
+            onAddComment={(comment: NewComment) => {
               const newComment = {
                 ...comment,
                 id: crypto.randomUUID(),
@@ -383,13 +396,13 @@ const ChatInterface = () => {
                 comments: [...prev.comments, newComment]
               }));
             }}
-            onDeleteComment={(id) => {
+            onDeleteComment={(id: string) => {
               setDocumentState(prev => ({
                 ...prev,
                 comments: prev.comments.filter(c => c.id !== id)
               }));
             }}
-            onChange={(content) => {
+            onChange={(content: string) => {
               setDocumentState(prev => ({
                 ...prev,
                 content
@@ -417,85 +430,87 @@ const ChatInterface = () => {
             gap: 1,
           }}
         >
-        <TextField
-          fullWidth
-          multiline
-          maxRows={4}
-          value={input}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-          placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-          disabled={isLoading}
-          sx={{ bgcolor: 'background.paper' }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              if (input.trim() && !isLoading) {
-                const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-                handleSubmit(formEvent);
+          <TextField
+            fullWidth
+            multiline
+            maxRows={4}
+            value={input}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+            placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
+            disabled={isLoading}
+            sx={{ bgcolor: 'background.paper' }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim() && !isLoading) {
+                  const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+                  handleSubmit(formEvent);
+                }
               }
-            }
-          }}
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isLoading || !input.trim()}
-          endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
-          sx={{ minWidth: '120px' }}
-        >
-          Send
-        </Button>
-        {messages.length > 0 && (
-          <Tooltip title="Clear chat">
+            }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading || !input.trim()}
+            endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
+            sx={{ minWidth: '120px' }}
+          >
+            Send
+          </Button>
+          {messages.length > 0 && (
+            <Tooltip title="Clear chat">
+              <IconButton
+                onClick={() => dispatch(clearMessages())}
+                color="error"
+                disabled={isLoading}
+                sx={{ 
+                  borderRadius: '50%',
+                  '&:hover': {
+                    bgcolor: (theme) => theme.palette.error.light,
+                    color: 'white'
+                  }
+                }}
+              >
+                <DeleteOutlineIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="System Prompt">
             <IconButton
-              onClick={() => dispatch(clearMessages())}
-              color="error"
+              onClick={() => setIsPromptDialogOpen(true)}
+              color="primary"
               disabled={isLoading}
               sx={{ 
                 borderRadius: '50%',
                 '&:hover': {
-                  bgcolor: (theme) => theme.palette.error.light,
+                  bgcolor: (theme) => theme.palette.primary.light,
                   color: 'white'
                 }
               }}
             >
-              <DeleteOutlineIcon />
+              <SettingsIcon />
             </IconButton>
           </Tooltip>
-        )}
-        <Tooltip title="System Prompt">
-          <IconButton
-            onClick={() => setIsPromptDialogOpen(true)}
-            color="primary"
-            disabled={isLoading}
-            sx={{ 
-              borderRadius: '50%',
-              '&:hover': {
-                bgcolor: (theme) => theme.palette.primary.light,
-                color: 'white'
-              }
-            }}
-          >
-            <SettingsIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={isDocumentMode ? "Switch to Chat Mode" : "Switch to Document Mode"}>
-          <IconButton
-            onClick={() => setIsDocumentMode(!isDocumentMode)}
-            color="primary"
-            disabled={isLoading}
-            sx={{ 
-              borderRadius: '50%',
-              '&:hover': {
-                bgcolor: (theme) => theme.palette.primary.light,
-                color: 'white'
-              }
-            }}
-          >
-            {isDocumentMode ? <ChatIcon /> : <DescriptionIcon />}
-          </IconButton>
-        </Tooltip>
-      </Box>
+          <Tooltip title={isDocumentMode ? "Switch to Chat Mode" : "Switch to Document Mode"}>
+            <IconButton
+              onClick={() => setIsDocumentMode(!isDocumentMode)}
+              color="primary"
+              disabled={isLoading}
+              sx={{ 
+                borderRadius: '50%',
+                '&:hover': {
+                  bgcolor: (theme) => theme.palette.primary.light,
+                  color: 'white'
+                }
+              }}
+            >
+              {isDocumentMode ? <ChatIcon /> : <DescriptionIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+    </Box>
   );
 };
 
