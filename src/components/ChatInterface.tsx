@@ -381,46 +381,26 @@ const ChatInterface = () => {
       </Dialog>
 
       {isDocumentMode ? (
-        <Box>
-          <DocumentEditor
-            content={documentState.content}
-            comments={documentState.comments}
-            onAddComment={(comment: NewComment) => {
-              const newComment = {
-                ...comment,
-                id: crypto.randomUUID(),
-                timestamp: Date.now()
-              };
-              setDocumentState(prev => ({
-                ...prev,
-                comments: [...prev.comments, newComment]
-              }));
-            }}
-            onDeleteComment={(id: string) => {
-              setDocumentState(prev => ({
-                ...prev,
-                comments: prev.comments.filter(c => c.id !== id)
-              }));
-            }}
-            onChange={(content: string) => {
-              setDocumentState(prev => ({
-                ...prev,
-                content
-              }));
-            }}
-            onReady={async () => {
-              setDocumentState(prev => ({ ...prev, isEditMode: false }));
-              const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${documentState.content}\n\nComments:\n${documentState.comments.map(c => (
-                `- At "${documentState.content.substring(c.position.start, c.position.end)}": ${c.content}`
-              )).join('\n')}`;
-              
-              setInput(prompt);
-              const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-              await handleSubmit(formEvent);
-              setDocumentState(prev => ({ ...prev, isEditMode: true }));
-            }}
-          />
-        </Box>
+        <DocumentMode
+          onSwitchMode={() => {
+            setIsDocumentMode(false);
+            setDocumentState({
+              content: '',
+              comments: [],
+              isEditMode: true
+            });
+          }}
+          onSubmitDocument={(content, comments) => {
+            const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${content}\n\nComments:\n${comments.map(c => (
+              `- At "${content.substring(c.position.start, c.position.end)}": ${c.content}`
+            )).join('\n')}`;
+            
+            setInput(prompt);
+            setIsDocumentMode(false);
+            const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+            handleSubmit(formEvent);
+          }}
+        />
       ) : (
         <Box
           component="form"
