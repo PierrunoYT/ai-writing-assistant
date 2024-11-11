@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -14,6 +14,8 @@ import {
   Alert,
   AlertColor,
   CircularProgress,
+  Grid,
+  Container,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChatIcon from '@mui/icons-material/Chat';
@@ -121,17 +123,6 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
     return a.position.start - b.position.start;
   });
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && selectedText && commentInput) {
-        handleAddComment();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleAddComment, selectedText, commentInput]);
-
   const getHighlightedContent = () => {
     let result = content;
     const highlights = comments.map(comment => ({
@@ -162,276 +153,245 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
   };
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      height: '100vh',
-      maxHeight: '100vh',
-      p: 2,
-      bgcolor: theme.palette.background.default,
-      boxSizing: 'border-box'
-    }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        mb: 2,
-        flexShrink: 0
-      }}>
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          Document Editor
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Tooltip title="Keyboard shortcuts">
-            <IconButton size="small">
-              <KeyboardIcon />
-            </IconButton>
-          </Tooltip>
-          <Button
-            variant="outlined"
-            startIcon={<ChatIcon />}
-            onClick={onSwitchMode}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              px: 3
-            }}
-          >
-            Return to Chat
-          </Button>
-        </Box>
-      </Box>
-
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 2,
-        flex: 1,
-        minHeight: 0,
-        overflow: 'hidden'
-      }}>
-        <Paper 
-          elevation={4} 
-          sx={{ 
-            flex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            borderRadius: 2,
-            bgcolor: theme.palette.background.paper,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              boxShadow: `0px 8px 24px ${theme.palette.mode === 'dark' 
-                ? 'rgba(0, 0, 0, 0.4)' 
-                : 'rgba(0, 0, 0, 0.15)'}`
-            }
-          }}
-        >
-          <div
-            contentEditable
-            dangerouslySetInnerHTML={{ __html: getHighlightedContent() }}
-            onInput={(e) => setContent(e.currentTarget.textContent || '')}
-            onMouseUp={handleTextSelect}
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '16.5px 14px',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '4px',
-              fontSize: '1rem',
-              lineHeight: 1.6,
-              outline: 'none',
-              wordWrap: 'break-word',
-              whiteSpace: 'pre-wrap'
-            }}
-          />
-        </Paper>
-
-        <Paper 
-          elevation={4} 
-          sx={{ 
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2,
-            borderRadius: 2,
-            bgcolor: theme.palette.background.paper,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              boxShadow: `0px 8px 24px ${theme.palette.mode === 'dark' 
-                ? 'rgba(0, 0, 0, 0.4)' 
-                : 'rgba(0, 0, 0, 0.15)'}`
-            }
-          }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            mb: 2,
-            flexShrink: 0
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CommentIcon color="primary" />
-              <Typography variant="h6" color="primary" fontWeight="medium">
-                Comments
-              </Typography>
-              <Chip 
-                label={comments.length} 
-                size="small" 
-                color="primary" 
+    <Container maxWidth={false} disableGutters sx={{ height: '100vh', bgcolor: theme.palette.background.default }}>
+      <Grid container spacing={0} sx={{ height: '100%' }}>
+        {/* Header */}
+        <Grid item xs={12} sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" fontWeight="bold" color="primary">
+              Document Editor
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Tooltip title="Keyboard shortcuts">
+                <IconButton size="small">
+                  <KeyboardIcon />
+                </IconButton>
+              </Tooltip>
+              <Button
                 variant="outlined"
-              />
-            </Box>
-            <Tooltip title="Toggle sort order">
-              <IconButton 
-                size="small" 
-                onClick={() => setSortOrder(prev => prev === 'time' ? 'position' : 'time')}
-              >
-                <SortIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          
-          <Fade in={Boolean(selectedText)}>
-            <Box sx={{ 
-              mb: 2,
-              p: 2,
-              bgcolor: theme.palette.action.hover,
-              borderRadius: 1,
-              flexShrink: 0
-            }}>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                Selected text: "{selectedText}"
-              </Typography>
-              <TextField
-                fullWidth
-                label="Add comment"
-                value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
-                sx={{ mb: 1 }}
-                size="small"
-                multiline
-                rows={2}
-                placeholder="Press Ctrl/Cmd + Enter to add comment"
-              />
-              <Button 
-                variant="contained" 
-                onClick={handleAddComment}
-                disabled={!commentInput}
-                fullWidth
+                startIcon={<ChatIcon />}
+                onClick={onSwitchMode}
                 sx={{
+                  borderRadius: 2,
                   textTransform: 'none',
-                  borderRadius: 1
+                  px: 3
                 }}
               >
-                Add Comment
+                Return to Chat
               </Button>
             </Box>
-          </Fade>
+          </Box>
+        </Grid>
 
-          <Box sx={{ 
-            flex: 1,
-            overflowY: 'auto',
-            minHeight: 0,
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: theme.palette.divider,
-              borderRadius: '4px',
-            }
-          }}>
-            {sortedComments.map((comment) => (
-              <Fade key={comment.id} in={true}>
-                <Paper 
-                  elevation={1} 
-                  sx={{ 
-                    p: 2,
-                    mb: 2,
-                    mr: 1,
-                    bgcolor: theme.palette.action.hover,
-                    borderRadius: 1,
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      transform: 'translateX(4px)',
-                      boxShadow: theme.shadows[3]
-                    }
+        {/* Main Content */}
+        <Grid item xs={12} sx={{ height: 'calc(100% - 72px)', overflow: 'hidden' }}>
+          <Grid container spacing={2} sx={{ height: '100%', p: 2 }}>
+            {/* Document Area */}
+            <Grid item xs={8} sx={{ height: '100%' }}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  height: '100%',
+                  bgcolor: theme.palette.background.paper,
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  overflow: 'hidden'
+                }}
+              >
+                <div
+                  contentEditable
+                  dangerouslySetInnerHTML={{ __html: getHighlightedContent() }}
+                  onInput={(e) => setContent(e.currentTarget.textContent || '')}
+                  onMouseUp={handleTextSelect}
+                  style={{
+                    height: '100%',
+                    padding: '24px',
+                    fontSize: '1rem',
+                    lineHeight: 1.6,
+                    outline: 'none',
+                    overflowY: 'auto',
+                    wordWrap: 'break-word',
+                    whiteSpace: 'pre-wrap'
                   }}
-                  onMouseEnter={() => setHoveredCommentId(comment.id)}
-                  onMouseLeave={() => setHoveredCommentId(null)}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 1 
-                  }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {new Date(comment.timestamp).toLocaleString()}
-                    </Typography>
-                    <Tooltip title="Delete comment">
+                />
+              </Paper>
+            </Grid>
+
+            {/* Comments Area */}
+            <Grid item xs={4} sx={{ height: '100%' }}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  height: '100%',
+                  bgcolor: theme.palette.background.paper,
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                {/* Comments Header */}
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CommentIcon color="primary" />
+                      <Typography variant="h6" color="primary" fontWeight="medium">
+                        Comments
+                      </Typography>
+                      <Chip 
+                        label={comments.length} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined"
+                      />
+                    </Box>
+                    <Tooltip title="Toggle sort order">
                       <IconButton 
                         size="small" 
-                        onClick={() => handleDeleteComment(comment.id)}
-                        sx={{
-                          color: theme.palette.error.main,
-                          '&:hover': {
-                            bgcolor: theme.palette.error.light
-                          }
-                        }}
+                        onClick={() => setSortOrder(prev => prev === 'time' ? 'position' : 'time')}
                       >
-                        <DeleteIcon fontSize="small" />
+                        <SortIcon />
                       </IconButton>
                     </Tooltip>
                   </Box>
-                  <Typography 
-                    sx={{ 
-                      mb: 1,
-                      fontSize: '0.875rem',
-                      color: theme.palette.text.secondary,
-                      bgcolor: theme.palette.background.paper,
-                      p: 1,
-                      borderRadius: 1,
-                      borderLeft: `3px solid ${theme.palette.primary.main}`
-                    }}
-                  >
-                    "{content.substring(comment.position.start, comment.position.end)}"
-                  </Typography>
-                  <Typography sx={{ 
-                    fontSize: '0.9rem',
-                    color: theme.palette.text.primary
-                  }}>
-                    {comment.content}
-                  </Typography>
-                </Paper>
-              </Fade>
-            ))}
-          </Box>
+                </Box>
 
-          {comments.length > 0 && (
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleSubmit}
-              disabled={isProcessing}
-              sx={{ 
-                mt: 2,
-                textTransform: 'none',
-                borderRadius: 1,
-                py: 1.5,
-                flexShrink: 0
-              }}
-            >
-              {isProcessing ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Process Document'
-              )}
-            </Button>
-          )}
-        </Paper>
-      </Box>
+                {/* Add Comment Section */}
+                {selectedText && (
+                  <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                      Selected text: "{selectedText}"
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      label="Add comment"
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      sx={{ mb: 1 }}
+                      size="small"
+                      multiline
+                      rows={2}
+                      placeholder="Type your comment here"
+                    />
+                    <Button 
+                      variant="contained" 
+                      onClick={handleAddComment}
+                      disabled={!commentInput}
+                      fullWidth
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: 1
+                      }}
+                    >
+                      Add Comment
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Comments List */}
+                <Box sx={{ 
+                  flex: 1,
+                  overflowY: 'auto',
+                  p: 2
+                }}>
+                  {sortedComments.map((comment) => (
+                    <Fade key={comment.id} in={true}>
+                      <Paper 
+                        elevation={0}
+                        sx={{ 
+                          p: 2,
+                          mb: 2,
+                          bgcolor: theme.palette.action.hover,
+                          borderRadius: 1,
+                          border: 1,
+                          borderColor: 'divider',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            transform: 'translateX(4px)',
+                            borderColor: theme.palette.primary.main
+                          }
+                        }}
+                        onMouseEnter={() => setHoveredCommentId(comment.id)}
+                        onMouseLeave={() => setHoveredCommentId(null)}
+                      >
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1 
+                        }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(comment.timestamp).toLocaleString()}
+                          </Typography>
+                          <Tooltip title="Delete comment">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleDeleteComment(comment.id)}
+                              sx={{
+                                color: theme.palette.error.main,
+                                '&:hover': {
+                                  bgcolor: theme.palette.error.light
+                                }
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                        <Typography 
+                          sx={{ 
+                            mb: 1,
+                            fontSize: '0.875rem',
+                            color: theme.palette.text.secondary,
+                            bgcolor: theme.palette.background.paper,
+                            p: 1,
+                            borderRadius: 1,
+                            borderLeft: `3px solid ${theme.palette.primary.main}`
+                          }}
+                        >
+                          "{content.substring(comment.position.start, comment.position.end)}"
+                        </Typography>
+                        <Typography sx={{ 
+                          fontSize: '0.9rem',
+                          color: theme.palette.text.primary
+                        }}>
+                          {comment.content}
+                        </Typography>
+                      </Paper>
+                    </Fade>
+                  ))}
+                </Box>
+
+                {/* Process Button */}
+                {comments.length > 0 && (
+                  <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      onClick={handleSubmit}
+                      disabled={isProcessing}
+                      sx={{ 
+                        textTransform: 'none',
+                        borderRadius: 1,
+                        py: 1.5
+                      }}
+                    >
+                      {isProcessing ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        'Process Document'
+                      )}
+                    </Button>
+                  </Box>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
 
       <Snackbar
         open={snackbar.open}
@@ -446,7 +406,7 @@ const DocumentMode = ({ onSwitchMode, onSubmitDocument }: DocumentModeProps) => 
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </Container>
   );
 };
 
