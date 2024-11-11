@@ -140,8 +140,8 @@ const ChatInterface = () => {
     <Box sx={{ 
       display: 'flex',
       flexDirection: 'column',
-      height: 'calc(100vh - 160px)',
-      gap: 2
+      flex: 1,
+      overflow: 'hidden'
     }}>
       {isDocumentMode ? (
         <Box sx={{ 
@@ -167,7 +167,8 @@ const ChatInterface = () => {
               flex: 1,
               p: 2, 
               overflow: 'auto',
-              bgcolor: 'background.paper'
+              bgcolor: 'background.paper',
+              mb: 2
             }}
           >
             <MessageList messages={messages} />
@@ -184,7 +185,7 @@ const ChatInterface = () => {
             currentPrompt={currentPrompt}
           />
 
-          <Box>
+          <Box sx={{ flexShrink: 0 }}>
             <ChatControls
               input={input}
               setInput={setInput}

@@ -11,8 +11,14 @@ const Layout = () => {
   const dispatch = useDispatch();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static">
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh',
+      height: '100vh',
+      overflow: 'hidden'
+    }}>
+      <AppBar position="static" sx={{ flexShrink: 0 }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             AI Writing Assistant
@@ -33,11 +39,27 @@ const Layout = () => {
         </Toolbar>
       </AppBar>
 
-      <Container component="main" sx={{ flexGrow: 1, py: 2 }}>
+      <Container 
+        component="main" 
+        sx={{ 
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          py: 2
+        }}
+      >
         <ChatInterface />
       </Container>
 
-      <Box component="footer" sx={{ py: 1, bgcolor: 'background.paper' }}>
+      <Box 
+        component="footer" 
+        sx={{ 
+          py: 1, 
+          bgcolor: 'background.paper',
+          flexShrink: 0
+        }}
+      >
         <Container maxWidth="sm">
           <Typography variant="body2" color="text.secondary" align="center">
             © {new Date().getFullYear()} AI Writing Assistant
