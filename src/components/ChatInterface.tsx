@@ -193,7 +193,7 @@ const ChatInterface = () => {
               hasMessages={messages.length > 0}
               isDocumentMode={isDocumentMode}
               onSubmit={handleSubmit}
-              onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
+              onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
               onToggleDocumentMode={() => {
                 if (!isDocumentMode) {
                   // When switching to document mode, set some initial content
