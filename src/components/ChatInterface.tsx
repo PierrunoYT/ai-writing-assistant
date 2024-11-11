@@ -271,7 +271,16 @@ const ChatInterface = () => {
   };
 
   return (
-    <Box sx={{ height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ 
+      height: 'calc(100vh - 140px)', 
+      display: 'flex', 
+      flexDirection: 'column',
+      gap: 3,
+      maxWidth: '1200px',
+      mx: 'auto',
+      width: '100%',
+      px: { xs: 2, sm: 4 }
+    }}>
       <Paper 
         elevation={3} 
         sx={{ 
