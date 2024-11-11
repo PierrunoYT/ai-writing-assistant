@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage, clearMessages } from '../store/slices/chatSlice';
@@ -38,6 +39,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState('You are a helpful AI assistant.');
+  const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
 
@@ -200,6 +203,10 @@ const ChatInterface = () => {
     while (retries < MAX_RETRIES) {
       try {
         const allMessages = [
+          {
+            role: 'system' as const,
+            content: systemPrompt
+          },
           ...messages.map((msg: Message) => formatMessageForAPI(msg)),
           formatMessageForAPI(userMessage)
         ];
@@ -279,6 +286,29 @@ const ChatInterface = () => {
         <MessageList messages={messages} />
       </Paper>
 
+      <Dialog
+        open={isPromptDialogOpen}
+        onClose={() => setIsPromptDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>System Prompt</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            placeholder="Enter system prompt..."
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsPromptDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -315,6 +345,15 @@ const ChatInterface = () => {
               <DeleteOutlineIcon />
             </IconButton>
           </Tooltip>
+          )}
+          <Tooltip title="System Prompt">
+            <IconButton
+              onClick={() => setIsPromptDialogOpen(true)}
+              color="primary"
+              disabled={isLoading}
+            >
+              <SettingsIcon />
+            </IconButton>
         )}
       </Box>
     </Box>
