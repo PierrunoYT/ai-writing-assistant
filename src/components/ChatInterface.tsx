@@ -368,44 +368,46 @@ const ChatInterface = () => {
       </Dialog>
 
       {isDocumentMode ? (
-        <DocumentEditor
-          content={documentState.content}
-          comments={documentState.comments}
-          onAddComment={(comment) => {
-            const newComment = {
-              ...comment,
-              id: crypto.randomUUID(),
-              timestamp: Date.now()
-            };
-            setDocumentState(prev => ({
-              ...prev,
-              comments: [...prev.comments, newComment]
-            }));
-          }}
-          onDeleteComment={(id) => {
-            setDocumentState(prev => ({
-              ...prev,
-              comments: prev.comments.filter(c => c.id !== id)
-            }));
-          }}
-          onChange={(content) => {
-            setDocumentState(prev => ({
-              ...prev,
-              content
-            }));
-          }}
-          onReady={async () => {
-            setDocumentState(prev => ({ ...prev, isEditMode: false }));
-            const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${documentState.content}\n\nComments:\n${documentState.comments.map(c => (
-              `- At "${documentState.content.substring(c.position.start, c.position.end)}": ${c.content}`
-            )).join('\n')}`;
-            
-            setInput(prompt);
-            const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-            await handleSubmit(formEvent);
-            setDocumentState(prev => ({ ...prev, isEditMode: true }));
-          }}
-        />
+        <Box>
+          <DocumentEditor
+            content={documentState.content}
+            comments={documentState.comments}
+            onAddComment={(comment) => {
+              const newComment = {
+                ...comment,
+                id: crypto.randomUUID(),
+                timestamp: Date.now()
+              };
+              setDocumentState(prev => ({
+                ...prev,
+                comments: [...prev.comments, newComment]
+              }));
+            }}
+            onDeleteComment={(id) => {
+              setDocumentState(prev => ({
+                ...prev,
+                comments: prev.comments.filter(c => c.id !== id)
+              }));
+            }}
+            onChange={(content) => {
+              setDocumentState(prev => ({
+                ...prev,
+                content
+              }));
+            }}
+            onReady={async () => {
+              setDocumentState(prev => ({ ...prev, isEditMode: false }));
+              const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${documentState.content}\n\nComments:\n${documentState.comments.map(c => (
+                `- At "${documentState.content.substring(c.position.start, c.position.end)}": ${c.content}`
+              )).join('\n')}`;
+              
+              setInput(prompt);
+              const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+              await handleSubmit(formEvent);
+              setDocumentState(prev => ({ ...prev, isEditMode: true }));
+            }}
+          />
+        </Box>
       ) : (
         <Box
           component="form"
