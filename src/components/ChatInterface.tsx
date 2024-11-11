@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Box, TextField, Button, Paper, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { addMessage, setLoading, setError } from '@/store/slices/chatSlice';
+import { RootState } from '../store';
+import { addMessage, setLoading, setError } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
-import MessageList from '@/components/MessageList';
-import { Message } from '@/types';
+import MessageList from './MessageList';
+import { Message } from '../types';
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');

@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from '@mui/material';
-import { Message } from '@/types';
+import { Message } from '../types';
 
 interface MessageListProps {
   messages: Message[];

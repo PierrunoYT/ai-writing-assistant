@@ -7,13 +7,8 @@ import {
   Typography,
   CircularProgress
 } from '@mui/material';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from 'firebase/auth';
-import { auth } from '@/config/firebase';
 import { useDispatch } from 'react-redux';
-import { setError } from '@/store/slices/authSlice';
+import { setError, setUser, authenticateUser, createUser } from '../store/slices/authSlice';
 
 const LoginForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,9 +23,15 @@ const LoginForm = () => {
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const user = authenticateUser(email, password);
+        if (user) {
+          dispatch(setUser(user));
+        } else {
+          throw new Error('Invalid email or password');
+        }
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const newUser = createUser(email, password);
+        dispatch(setUser(newUser));
       }
     } catch (error) {
       dispatch(setError(error instanceof Error ? error.message : 'Authentication failed'));

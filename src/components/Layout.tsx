@@ -1,20 +1,16 @@
 import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { auth } from '@/config/firebase';
-import { signOut } from 'firebase/auth';
-import ChatInterface from '@/components/ChatInterface';
-import LoginForm from '@/components/LoginForm';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../store';
+import { clearAuth } from '../store/slices/authSlice';
+import ChatInterface from './ChatInterface';
+import LoginForm from './LoginForm';
 
 const Layout = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const handleLogout = () => {
+    dispatch(clearAuth());
   };
 
   return (
