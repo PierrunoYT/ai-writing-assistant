@@ -1,21 +1,14 @@
-import { Box, Container, AppBar, Toolbar, Typography, Button, IconButton } from '@mui/material';
+import { Box, Container, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { clearAuth } from '../store/slices/authSlice';
 import { toggleTheme } from '../store/slices/themeSlice';
 import ChatInterface from './ChatInterface';
-import LoginForm from './LoginForm';
 
 const Layout = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
   const themeMode = useSelector((state: RootState) => state.theme.mode);
   const dispatch = useDispatch();
-
-  const handleLogout = () => {
-    dispatch(clearAuth());
-  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -37,25 +30,11 @@ const Layout = () => {
           >
             {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
-          {user && (
-            <Button 
-              color="inherit" 
-              onClick={handleLogout}
-              sx={{
-                '&:hover': {
-                  bgcolor: (theme) => theme.palette.error.light,
-                  color: 'white'
-                }
-              }}
-            >
-              Logout
-            </Button>
-          )}
         </Toolbar>
       </AppBar>
 
       <Container component="main" sx={{ flexGrow: 1, py: 2 }}>
-        {user ? <ChatInterface /> : <LoginForm />}
+        <ChatInterface />
       </Container>
 
       <Box component="footer" sx={{ py: 1, bgcolor: 'background.paper' }}>

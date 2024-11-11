@@ -147,33 +147,14 @@ const ChatInterface = () => {
       width: '100%',
       px: { xs: 2, sm: 4 }
     }}>
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          flexGrow: 1, 
-          mb: 2, 
-          p: 2, 
-          overflow: 'auto',
-          bgcolor: 'background.paper',
-          position: 'relative'
-        }}
-      >
-        <MessageList messages={messages} />
-      </Paper>
-
-      <SystemPromptDialog
-        open={isPromptDialogOpen}
-        onClose={() => setIsPromptDialogOpen(false)}
-        selectedPromptId={selectedPromptId}
-        setSelectedPromptId={setSelectedPromptId}
-        customPrompt={customPrompt}
-        setCustomPrompt={setCustomPrompt}
-        systemPrompts={systemPrompts}
-        currentPrompt={currentPrompt}
-      />
-
       {isDocumentMode ? (
-        <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1 }}>
+        <Box sx={{ 
+          flex: 1,
+          minHeight: 0,
+          bgcolor: 'background.paper', 
+          borderRadius: 1,
+          overflow: 'hidden'
+        }}>
           <DocumentEditor
             content={documentContent}
             comments={documentComments}
@@ -184,20 +165,47 @@ const ChatInterface = () => {
           />
         </Box>
       ) : (
-        <ChatControls
-          input={input}
-          setInput={setInput}
-          isLoading={isLoading}
-          hasMessages={messages.length > 0}
-          isDocumentMode={isDocumentMode}
-          onSubmit={handleSubmit}
-          onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
-          onToggleDocumentMode={() => {
-            setIsDocumentMode(!isDocumentMode);
-            setDocumentContent('');
-            setDocumentComments([]);
-          }}
-        />
+        <>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              flexGrow: 1, 
+              mb: 2, 
+              p: 2, 
+              overflow: 'auto',
+              bgcolor: 'background.paper',
+              position: 'relative'
+            }}
+          >
+            <MessageList messages={messages} />
+          </Paper>
+
+          <SystemPromptDialog
+            open={isPromptDialogOpen}
+            onClose={() => setIsPromptDialogOpen(false)}
+            selectedPromptId={selectedPromptId}
+            setSelectedPromptId={setSelectedPromptId}
+            customPrompt={customPrompt}
+            setCustomPrompt={setCustomPrompt}
+            systemPrompts={systemPrompts}
+            currentPrompt={currentPrompt}
+          />
+
+          <ChatControls
+            input={input}
+            setInput={setInput}
+            isLoading={isLoading}
+            hasMessages={messages.length > 0}
+            isDocumentMode={isDocumentMode}
+            onSubmit={handleSubmit}
+            onOpenPromptDialog={() => setIsPromptDialogOpen(false)}
+            onToggleDocumentMode={() => {
+              setIsDocumentMode(!isDocumentMode);
+              setDocumentContent('');
+              setDocumentComments([]);
+            }}
+          />
+        </>
       )}
     </Box>
   );

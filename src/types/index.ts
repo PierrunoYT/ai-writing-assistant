@@ -11,19 +11,6 @@ export interface ChatState {
   error: string | null;
 }
 
-export interface User {
-  uid: string;
-  email: string;
-  displayName?: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
 // OpenRouter API Types
 export interface StreamingChoice {
   finish_reason: string | null;

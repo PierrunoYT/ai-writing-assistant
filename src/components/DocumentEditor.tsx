@@ -65,20 +65,41 @@ const DocumentEditor = ({
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)' }}>
-      <Paper elevation={3} sx={{ flex: 2, p: 2 }}>
-        <TextField
-          fullWidth
-          multiline
-          minRows={20}
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
-          onSelect={handleTextSelect}
-          inputRef={textFieldRef}
-          sx={{ mb: 2 }}
-        />
+    <Box sx={{ 
+      display: 'flex', 
+      gap: 2, 
+      height: '100%',
+      overflow: 'hidden'
+    }}>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          flex: 2, 
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <TextField
+            fullWidth
+            multiline
+            minRows={20}
+            value={content}
+            onChange={(e) => onChange(e.target.value)}
+            onSelect={handleTextSelect}
+            inputRef={textFieldRef}
+            sx={{ 
+              '& .MuiInputBase-root': {
+                height: '100%'
+              }
+            }}
+          />
+        </Box>
+        
         {selectedText && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, flexShrink: 0 }}>
             <TextField
               fullWidth
               label="Add comment"
@@ -97,9 +118,23 @@ const DocumentEditor = ({
         )}
       </Paper>
 
-      <Paper elevation={3} sx={{ flex: 1, p: 2, overflow: 'auto' }}>
-        <Box sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          flex: 1, 
+          p: 2, 
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ mb: 2, flexShrink: 0 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 2 
+          }}>
             <Typography variant="h6">Comments</Typography>
             <Button
               variant="contained"
@@ -122,36 +157,51 @@ const DocumentEditor = ({
           </Button>
         </Box>
         
-        {comments.map((comment) => (
-          <Paper 
-            key={comment.id} 
-            elevation={1} 
-            sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                {new Date(comment.timestamp).toLocaleTimeString()}
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: (theme) => theme.palette.divider,
+            borderRadius: '4px',
+          }
+        }}>
+          {comments.map((comment) => (
+            <Paper 
+              key={comment.id} 
+              elevation={1} 
+              sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(comment.timestamp).toLocaleTimeString()}
+                </Typography>
+                <Tooltip title="Delete comment">
+                  <IconButton 
+                    size="small" 
+                    onClick={() => onDeleteComment(comment.id)}
+                    sx={{ 
+                      '&:hover': {
+                        color: 'error.main'
+                      }
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Typography sx={{ mb: 1 }} color="text.secondary">
+                Selected text: "{content.substring(comment.position.start, comment.position.end)}"
               </Typography>
-              <Tooltip title="Delete comment">
-                <IconButton 
-                  size="small" 
-                  onClick={() => onDeleteComment(comment.id)}
-                  sx={{ 
-                    '&:hover': {
-                      color: 'error.main'
-                    }
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-            <Typography sx={{ mb: 1 }} color="text.secondary">
-              Selected text: "{content.substring(comment.position.start, comment.position.end)}"
-            </Typography>
-            <Typography>{comment.content}</Typography>
-          </Paper>
-        ))}
+              <Typography>{comment.content}</Typography>
+            </Paper>
+          ))}
+        </Box>
       </Paper>
     </Box>
   );
