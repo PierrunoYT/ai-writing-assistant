@@ -98,17 +98,26 @@ const DocumentEditor = ({
       </Paper>
 
       <Paper elevation={3} sx={{ flex: 1, p: 2, overflow: 'auto' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Comments</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<CheckIcon />}
-            onClick={onReady}
-            disabled={comments.length === 0}
-          >
-            Ready to Rewrite
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => window.location.reload()}
+            >
+              Return to Chat
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<CheckIcon />}
+              onClick={onReady}
+              disabled={comments.length === 0}
+            >
+              Ready to Rewrite
+            </Button>
+          </Box>
         </Box>
         
         {comments.map((comment) => (
