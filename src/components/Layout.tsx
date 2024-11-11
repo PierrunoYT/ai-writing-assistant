@@ -39,11 +39,11 @@ const Layout = () => {
         </Toolbar>
       </AppBar>
 
-      <Container component="main" sx={{ flexGrow: 1, py: 4 }}>
+      <Container component="main" sx={{ flexGrow: 1, py: 2 }}>
         {user ? <ChatInterface /> : <LoginForm />}
       </Container>
 
-      <Box component="footer" sx={{ py: 3, bgcolor: 'background.paper' }}>
+      <Box component="footer" sx={{ py: 1, bgcolor: 'background.paper' }}>
         <Container maxWidth="sm">
           <Typography variant="body2" color="text.secondary" align="center">
             © {new Date().getFullYear()} AI Writing Assistant
