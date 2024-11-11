@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, KeyboardEvent, useEffect } from 'react';
+import { useState, useCallback, KeyboardEvent, useEffect } from 'react';
 import { 
   Box, 
   Paper, 
@@ -8,13 +8,15 @@ import {
   IconButton,
   Tooltip,
   Snackbar,
-  Alert
+  Alert,
+  Stack
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 import { Comment } from '../types';
 
 interface DocumentEditorProps {
@@ -27,9 +29,11 @@ interface DocumentEditorProps {
 }
 
 interface Selection {
+  id: string;
   text: string;
   start: number;
   end: number;
+  commentInput: string;
 }
 
 interface Segment {
@@ -47,16 +51,13 @@ const DocumentEditor = ({
   onReady,
   onChange
 }: DocumentEditorProps) => {
-  const [selection, setSelection] = useState<Selection | null>(null);
-  const [commentInput, setCommentInput] = useState('');
+  const [selections, setSelections] = useState<Selection[]>([]);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
     severity: 'success' | 'error' | 'info';
   }>({ open: false, message: '', severity: 'info' });
-  
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Split content into segments based on comments
   useEffect(() => {
@@ -118,16 +119,10 @@ const DocumentEditor = ({
 
   const handleTextSelect = useCallback(() => {
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
-      setSelection(null);
-      return;
-    }
+    if (!selection || selection.isCollapsed) return;
 
     const selectedText = selection.toString().trim();
-    if (!selectedText) {
-      setSelection(null);
-      return;
-    }
+    if (!selectedText) return;
 
     // Find the segment containing the selection
     let start = -1;
@@ -144,49 +139,60 @@ const DocumentEditor = ({
     });
 
     if (start !== -1 && end !== -1) {
-      setSelection({ text: selectedText, start, end });
+      const newSelection: Selection = {
+        id: Math.random().toString(36).substr(2, 9),
+        text: selectedText,
+        start,
+        end,
+        commentInput: ''
+      };
+      setSelections(prev => [...prev, newSelection]);
     }
   }, [segments]);
 
-  const handleAddComment = useCallback(() => {
-    if (!selection || !commentInput.trim()) {
+  const handleAddComment = useCallback((selectionId: string) => {
+    const selection = selections.find(s => s.id === selectionId);
+    if (!selection || !selection.commentInput.trim()) {
       setSnackbar({
         open: true,
-        message: 'Please select text and enter a comment',
+        message: 'Please enter a comment',
         severity: 'error'
       });
       return;
     }
 
     onAddComment({
-      content: commentInput.trim(),
+      content: selection.commentInput.trim(),
       position: {
         start: selection.start,
         end: selection.end
       }
     });
 
-    setSelection(null);
-    setCommentInput('');
+    setSelections(prev => prev.filter(s => s.id !== selectionId));
     setSnackbar({
       open: true,
       message: 'Comment added successfully',
       severity: 'success'
     });
-  }, [selection, commentInput, onAddComment]);
+  }, [selections, onAddComment]);
 
-  const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && selection && commentInput) {
+  const handleKeyPress = useCallback((e: KeyboardEvent, selectionId: string) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
-      handleAddComment();
+      handleAddComment(selectionId);
     }
-  }, [selection, commentInput, handleAddComment]);
+  }, [handleAddComment]);
 
-  useEffect(() => {
-    if (selection) {
-      commentInputRef.current?.focus();
-    }
-  }, [selection]);
+  const handleCommentInputChange = (selectionId: string, value: string) => {
+    setSelections(prev => prev.map(s => 
+      s.id === selectionId ? { ...s, commentInput: value } : s
+    ));
+  };
+
+  const removeSelection = (selectionId: string) => {
+    setSelections(prev => prev.filter(s => s.id !== selectionId));
+  };
 
   return (
     <Box sx={{ 
@@ -269,33 +275,46 @@ const DocumentEditor = ({
           ))}
         </Box>
         
-        {selection && (
+        {selections.length > 0 && (
           <Box sx={{ p: 2, flexShrink: 0 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Selected text: "{selection.text}"
-            </Typography>
-            <TextField
-              fullWidth
-              label="Add comment"
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              inputRef={commentInputRef}
-              sx={{ mb: 1 }}
-              size="small"
-              multiline
-              rows={2}
-              placeholder="Type your comment here... (Ctrl/Cmd + Enter to submit)"
-            />
-            <Button 
-              variant="contained" 
-              onClick={handleAddComment}
-              disabled={!commentInput.trim()}
-              fullWidth
-              endIcon={<KeyboardReturnIcon />}
-            >
-              Add Comment
-            </Button>
+            <Stack spacing={2}>
+              {selections.map((selection) => (
+                <Box key={selection.id} sx={{ position: 'relative' }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Selected text: "{selection.text}"
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Add comment"
+                    value={selection.commentInput}
+                    onChange={(e) => handleCommentInputChange(selection.id, e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, selection.id)}
+                    size="small"
+                    multiline
+                    rows={2}
+                    placeholder="Type your comment here... (Ctrl/Cmd + Enter to submit)"
+                  />
+                  <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                    <Button 
+                      variant="contained" 
+                      onClick={() => handleAddComment(selection.id)}
+                      disabled={!selection.commentInput.trim()}
+                      fullWidth
+                      endIcon={<KeyboardReturnIcon />}
+                    >
+                      Add Comment
+                    </Button>
+                    <IconButton
+                      onClick={() => removeSelection(selection.id)}
+                      color="error"
+                      size="small"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
           </Box>
         )}
       </Paper>
