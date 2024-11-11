@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Box, TextField, Button, Paper, CircularProgress, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ChatIcon from '@mui/icons-material/Chat';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage, clearMessages } from '../store/slices/chatSlice';
@@ -43,6 +45,12 @@ const ChatInterface = () => {
   const [selectedPromptId, setSelectedPromptId] = useState('default');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
+  const [isDocumentMode, setIsDocumentMode] = useState(false);
+  const [documentState, setDocumentState] = useState({
+    content: '',
+    comments: [] as Comment[],
+    isEditMode: true
+  });
   
   const currentPrompt = systemPrompts.find((p: { id: string }) => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
@@ -359,14 +367,54 @@ const ChatInterface = () => {
         </DialogActions>
       </Dialog>
 
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{
-          display: 'flex',
-          gap: 1,
-        }}
-      >
+      {isDocumentMode ? (
+        <DocumentEditor
+          content={documentState.content}
+          comments={documentState.comments}
+          onAddComment={(comment) => {
+            const newComment = {
+              ...comment,
+              id: crypto.randomUUID(),
+              timestamp: Date.now()
+            };
+            setDocumentState(prev => ({
+              ...prev,
+              comments: [...prev.comments, newComment]
+            }));
+          }}
+          onDeleteComment={(id) => {
+            setDocumentState(prev => ({
+              ...prev,
+              comments: prev.comments.filter(c => c.id !== id)
+            }));
+          }}
+          onChange={(content) => {
+            setDocumentState(prev => ({
+              ...prev,
+              content
+            }));
+          }}
+          onReady={async () => {
+            setDocumentState(prev => ({ ...prev, isEditMode: false }));
+            const prompt = `Please rewrite the following text incorporating these comments:\n\nOriginal Text:\n${documentState.content}\n\nComments:\n${documentState.comments.map(c => (
+              `- At "${documentState.content.substring(c.position.start, c.position.end)}": ${c.content}`
+            )).join('\n')}`;
+            
+            setInput(prompt);
+            const formEvent = new Event('submit', { cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+            await handleSubmit(formEvent);
+            setDocumentState(prev => ({ ...prev, isEditMode: true }));
+          }}
+        />
+      ) : (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: 'flex',
+            gap: 1,
+          }}
+        >
         <TextField
           fullWidth
           multiline

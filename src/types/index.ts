@@ -81,6 +81,22 @@ export interface SystemPrompt {
   prompt: string;
 }
 
+export interface Comment {
+  id: string;
+  content: string;
+  position: {
+    start: number;
+    end: number;
+  };
+  timestamp: number;
+}
+
+export interface DocumentState {
+  content: string;
+  comments: Comment[];
+  isEditMode: boolean;
+}
+
 export interface StreamResponse {
   id: string;
   choices: StreamingChoice[];
