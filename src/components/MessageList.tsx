@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from '@mui/material';
-import { Message } from '../types';
+import { Message } from '@/types';
 
 interface MessageListProps {
   messages: Message[];
@@ -17,10 +17,13 @@ const MessageList = ({ messages }: MessageListProps) => {
             maxWidth: '80%',
             alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
             bgcolor: message.role === 'user' ? 'primary.dark' : 'background.paper',
+            color: message.role === 'user' ? 'white' : 'text.primary',
           }}
         >
-          <Typography variant="body1">{message.content}</Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+            {message.content}
+          </Typography>
+          <Typography variant="caption" color={message.role === 'user' ? 'inherit' : 'text.secondary'}>
             {new Date(message.timestamp).toLocaleTimeString()}
           </Typography>
         </Paper>

@@ -1,10 +1,10 @@
 import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { auth } from '../config/firebase';
+import { RootState } from '@/store';
+import { auth } from '@/config/firebase';
 import { signOut } from 'firebase/auth';
-import ChatInterface from './ChatInterface';
-import LoginForm from './LoginForm';
+import ChatInterface from '@/components/ChatInterface';
+import LoginForm from '@/components/LoginForm';
 
 const Layout = () => {
   const user = useSelector((state: RootState) => state.auth.user);

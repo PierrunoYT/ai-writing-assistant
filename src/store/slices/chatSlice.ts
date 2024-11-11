@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: number;
-}
-
-interface ChatState {
-  messages: Message[];
-  isLoading: boolean;
-  error: string | null;
-}
+import { Message, ChatState } from '@/types';
 
 const initialState: ChatState = {
   messages: [],
@@ -23,16 +11,16 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    setLoading: (state, action: PayloadAction<boolean>) => {
+    setLoading: (state: ChatState, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    addMessage: (state, action: PayloadAction<Message>) => {
+    addMessage: (state: ChatState, action: PayloadAction<Message>) => {
       state.messages.push(action.payload);
     },
-    setError: (state, action: PayloadAction<string | null>) => {
+    setError: (state: ChatState, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
-    clearMessages: (state) => {
+    clearMessages: (state: ChatState) => {
       state.messages = [];
     },
   },

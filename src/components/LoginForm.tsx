@@ -5,16 +5,15 @@ import {
   TextField,
   Button,
   Typography,
-  Alert,
   CircularProgress
 } from '@mui/material';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth } from '@/config/firebase';
 import { useDispatch } from 'react-redux';
-import { setError } from '../store/slices/authSlice';
+import { setError } from '@/store/slices/authSlice';
 
 const LoginForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,7 +22,7 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
@@ -72,7 +71,7 @@ const LoginForm = () => {
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             disabled={loading}
           />
           <TextField
@@ -82,7 +81,7 @@ const LoginForm = () => {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             disabled={loading}
           />
 
