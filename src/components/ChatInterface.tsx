@@ -496,7 +496,6 @@ const ChatInterface = () => {
           </IconButton>
         </Tooltip>
       </Box>
-    </Box>
   );
 };
 
