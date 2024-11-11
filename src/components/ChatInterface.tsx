@@ -354,6 +354,7 @@ const ChatInterface = () => {
             >
               <SettingsIcon />
             </IconButton>
+          </Tooltip>
         )}
       </Box>
     </Box>
