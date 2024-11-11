@@ -1,7 +1,7 @@
 export interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   timestamp: number;
 }
 
@@ -61,4 +61,18 @@ export interface StreamResponse {
     completion_tokens: number;
     total_tokens: number;
   };
+}
+
+// OpenRouter Message Types
+export interface MessageContent {
+  type: 'text';
+  text: string;
+  cache_control?: {
+    type: 'ephemeral';
+  };
+}
+
+export interface APIMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string | MessageContent[];
 }

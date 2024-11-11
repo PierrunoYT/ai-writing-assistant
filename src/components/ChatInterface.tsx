@@ -5,10 +5,33 @@ import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
-import { Message, StreamResponse } from '../types';
+import { Message, StreamResponse, APIMessage, MessageContent } from '../types';
 
 const SITE_URL = window.location.origin;
 const SITE_NAME = 'Writing Assistant';
+
+const formatMessageForAPI = (msg: Message): APIMessage => {
+  // For system messages or large content, use cache control
+  if (msg.role === 'system' || msg.content.length > 1000) {
+    const content: MessageContent[] = [{
+      type: 'text',
+      text: msg.content,
+      cache_control: {
+        type: 'ephemeral'
+      }
+    }];
+    return {
+      role: msg.role,
+      content
+    };
+  }
+  
+  // For regular messages, use simple format
+  return {
+    role: msg.role,
+    content: msg.content
+  };
+};
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
@@ -94,14 +117,8 @@ const ChatInterface = () => {
 
     try {
       const allMessages = [
-        ...messages.map((msg: Message) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        {
-          role: userMessage.role,
-          content: userMessage.content,
-        }
+        ...messages.map((msg: Message) => formatMessageForAPI(msg)),
+        formatMessageForAPI(userMessage)
       ];
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -120,7 +137,8 @@ const ChatInterface = () => {
           max_tokens: 1000,
           top_p: 0.9,
           presence_penalty: 0.1,
-          frequency_penalty: 0.1
+          frequency_penalty: 0.1,
+          transforms: ['middle-out'] // Enable middle-out compression for long conversations
         }),
       });
 
