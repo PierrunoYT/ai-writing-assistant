@@ -399,6 +399,7 @@ const ChatInterface = () => {
               onClick={() => dispatch(clearMessages())}
               color="error"
               disabled={isLoading}
+              sx={{ borderRadius: '50%' }}
             >
               <DeleteOutlineIcon />
             </IconButton>
@@ -409,6 +410,7 @@ const ChatInterface = () => {
             onClick={() => setIsPromptDialogOpen(true)}
             color="primary"
             disabled={isLoading}
+            sx={{ borderRadius: '50%' }}
           >
             <SettingsIcon />
           </IconButton>
