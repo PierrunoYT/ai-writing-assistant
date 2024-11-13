@@ -58,13 +58,21 @@ const ChatControls: React.FC<ChatControlsProps> = ({
             }
           }
         }}
+        aria-label="Chat message input"
+        inputProps={{
+          'aria-describedby': 'message-input-help',
+        }}
       />
+      <span id="message-input-help" className="sr-only">
+        Press Enter to send your message, or Shift+Enter for a new line
+      </span>
       <Button
         type="submit"
         variant="contained"
         disabled={isLoading || !input.trim()}
         endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
         sx={{ minWidth: '120px' }}
+        aria-label={isLoading ? "Sending message..." : "Send message"}
       >
         Send
       </Button>
@@ -81,6 +89,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
                 color: 'white'
               }
             }}
+            aria-label="Clear chat history"
           >
             <DeleteOutlineIcon />
           </IconButton>
@@ -98,6 +107,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
               color: 'white'
             }
           }}
+          aria-label="Open system prompt settings"
         >
           <SettingsIcon />
         </IconButton>
@@ -114,6 +124,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
               color: 'white'
             }
           }}
+          aria-label={isDocumentMode ? "Switch to chat mode" : "Switch to document mode"}
         >
           {isDocumentMode ? <ChatIcon /> : <DescriptionIcon />}
         </IconButton>

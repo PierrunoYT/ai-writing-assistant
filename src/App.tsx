@@ -4,6 +4,7 @@ import { store } from './store';
 import Layout from './components/Layout';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const createAppTheme = (mode: 'light' | 'dark') => createTheme({
   palette: {
@@ -64,7 +65,9 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </Provider>
   );
 }

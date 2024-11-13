@@ -3,13 +3,14 @@ import { Box, Paper } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
-import MessageList from './MessageList';
+import VirtualizedMessageList from './VirtualizedMessageList';
 import ChatControls from './ChatControls';
 import SystemPromptDialog from './SystemPromptDialog';
 import DocumentEditor from './DocumentEditor';
 import { Message, OpenRouterErrorResponse } from '../types';
 import { systemPrompts } from '../prompts/systemPrompts';
 import { checkRateLimit, sendChatRequest, handleAPIError } from '../services/api';
+import { API_CONFIG, ERROR_MESSAGES, CHAT_CONFIG } from '../config/constants';
 
 interface Comment {
   id: string;
@@ -29,7 +30,7 @@ const ChatInterface = () => {
   const [isDocumentMode, setIsDocumentMode] = useState(false);
   const [documentContent, setDocumentContent] = useState('');
   const [documentComments, setDocumentComments] = useState<Comment[]>([]);
-  
+
   const currentPrompt = systemPrompts.find((p) => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
   const { messages, isLoading } = useSelector((state: RootState) => state.chat);
@@ -166,48 +167,41 @@ const ChatInterface = () => {
             sx={{ 
               flex: 1,
               p: 2, 
-              overflow: 'auto',
+              overflow: 'hidden',
               bgcolor: 'background.paper',
-              mb: 2
+              mb: 2,
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
-            <MessageList messages={messages} />
+            <Box sx={{ flex: 1, minHeight: 0 }}>
+              <VirtualizedMessageList messages={messages} />
+            </Box>
           </Paper>
 
-          <SystemPromptDialog
-            open={isPromptDialogOpen}
-            onClose={() => setIsPromptDialogOpen(false)}
-            selectedPromptId={selectedPromptId}
-            setSelectedPromptId={setSelectedPromptId}
-            customPrompt={customPrompt}
-            setCustomPrompt={setCustomPrompt}
-            systemPrompts={systemPrompts}
-            currentPrompt={currentPrompt}
+          <ChatControls
+            input={input}
+            setInput={setInput}
+            isLoading={isLoading}
+            hasMessages={messages.length > 0}
+            isDocumentMode={isDocumentMode}
+            onSubmit={handleSubmit}
+            onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
+            onToggleDocumentMode={() => setIsDocumentMode(!isDocumentMode)}
           />
-
-          <Box sx={{ flexShrink: 0 }}>
-            <ChatControls
-              input={input}
-              setInput={setInput}
-              isLoading={isLoading}
-              hasMessages={messages.length > 0}
-              isDocumentMode={isDocumentMode}
-              onSubmit={handleSubmit}
-              onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
-              onToggleDocumentMode={() => {
-                if (!isDocumentMode) {
-                  // When switching to document mode, set some initial content
-                  setDocumentContent(messages.length > 0 ? 
-                    messages[messages.length - 1].content : 
-                    'Enter or paste your text here to begin adding comments.');
-                }
-                setIsDocumentMode(!isDocumentMode);
-                setDocumentComments([]);
-              }}
-            />
-          </Box>
         </>
       )}
+
+      <SystemPromptDialog
+        open={isPromptDialogOpen}
+        onClose={() => setIsPromptDialogOpen(false)}
+        selectedPromptId={selectedPromptId}
+        setSelectedPromptId={setSelectedPromptId}
+        customPrompt={customPrompt}
+        setCustomPrompt={setCustomPrompt}
+        systemPrompts={systemPrompts}
+        currentPrompt={currentPrompt}
+      />
     </Box>
   );
 };
