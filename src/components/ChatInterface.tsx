@@ -194,7 +194,7 @@ const ChatInterface = () => {
           flexDirection: 'column',
           p: 2,
           gap: 2,
-          maxWidth: '900px',
+          maxWidth: '1400px',
           width: '100%',
           margin: '0 auto',
           position: 'relative',
