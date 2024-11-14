@@ -184,7 +184,8 @@ const ChatInterface = () => {
         flexGrow: 1,
         minWidth: 0,
         height: '100%',
-        ml: `${DRAWER_WIDTH}px`
+        ml: `${DRAWER_WIDTH}px`,
+        position: 'relative'
       }}>
         <Box sx={{ 
           flex: 1,
@@ -192,7 +193,12 @@ const ChatInterface = () => {
           display: 'flex',
           flexDirection: 'column',
           p: 2,
-          gap: 2
+          gap: 2,
+          maxWidth: '900px',
+          width: '100%',
+          margin: '0 auto',
+          position: 'relative',
+          right: `${DRAWER_WIDTH/2}px`
         }}>
           {isDocumentMode ? (
             <Box sx={{ 
