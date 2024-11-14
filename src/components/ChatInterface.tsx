@@ -155,7 +155,8 @@ const ChatInterface = () => {
     <Box sx={{ 
       display: 'flex',
       width: '100%',
-      height: '100%'
+      height: '100vh',
+      overflow: 'hidden'
     }}>
       <Drawer
         variant="permanent"
@@ -182,7 +183,8 @@ const ChatInterface = () => {
         flexDirection: 'column',
         flex: 1,
         p: 2,
-        ml: `${DRAWER_WIDTH}px`
+        ml: `${DRAWER_WIDTH}px`,
+        height: '100%'
       }}>
         {isDocumentMode ? (
           <Box sx={{ 
@@ -212,10 +214,11 @@ const ChatInterface = () => {
                 mb: 2,
                 display: 'flex',
                 flexDirection: 'column',
-                minHeight: '400px'
+                minHeight: '75vh',
+                maxHeight: 'calc(100vh - 120px)'
               }}
             >
-              <Box sx={{ flex: 1, minHeight: 0 }}>
+              <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 {messages.length === 0 ? (
                   <Box sx={{ 
                     height: '100%', 
