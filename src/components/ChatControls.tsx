@@ -6,7 +6,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ChatIcon from '@mui/icons-material/Chat';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { useDispatch } from 'react-redux';
-import { clearMessages } from '../store/slices/chatSlice';
+import { clearCurrentConversation } from '../store/slices/chatSlice';
 
 interface ChatControlsProps {
   input: string;
@@ -79,7 +79,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       {hasMessages && (
         <Tooltip title="Clear chat">
           <IconButton
-            onClick={() => dispatch(clearMessages())}
+            onClick={() => dispatch(clearCurrentConversation())}
             color="error"
             disabled={isLoading}
             sx={{ 
