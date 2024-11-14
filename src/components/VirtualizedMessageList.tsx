@@ -26,14 +26,16 @@ const MessageRow = ({ data, index, style }: MessageRowProps) => {
     <div style={{
       ...style,
       height: 'auto',
-      paddingTop: '8px',
-      paddingBottom: '8px',
+      paddingTop: '12px',
+      paddingBottom: '12px',
+      paddingLeft: '16px',
+      paddingRight: '16px',
     }}>
       <Paper
         elevation={1}
         sx={{
-          p: 2.5,
-          maxWidth: '80%',
+          p: 3,
+          maxWidth: '95%',
           bgcolor: message.role === 'user' ? 'primary.dark' : 'background.paper',
           color: message.role === 'user' ? 'white' : 'text.primary',
           borderRadius: '1.5rem',
@@ -55,6 +57,8 @@ const MessageRow = ({ data, index, style }: MessageRowProps) => {
               whiteSpace: 'pre-wrap',
               pr: message.role === 'assistant' ? 4 : 0,
               wordBreak: 'break-word',
+              fontSize: '1rem',
+              lineHeight: 1.6,
             }}
           >
             {message.content}
@@ -83,7 +87,7 @@ const MessageRow = ({ data, index, style }: MessageRowProps) => {
         <Typography
           variant="caption"
           color={message.role === 'user' ? 'inherit' : 'text.secondary'}
-          sx={{ mt: 1, display: 'block' }}
+          sx={{ mt: 1, display: 'block', opacity: 0.8 }}
         >
           {new Date(message.timestamp).toLocaleTimeString()}
         </Typography>
@@ -100,30 +104,35 @@ const VirtualizedMessageList: React.FC<VirtualizedMessageListProps> = ({
   messages,
 }) => {
   const listRef = useRef<List>(null);
-  const [listKey, setListKey] = useState(0); // Add key to force re-render when needed
+  const [listKey, setListKey] = useState(0);
 
   const getItemSize = (index: number) => {
-    // Base height for a single line message
-    const baseHeight = 100;
+    const baseHeight = 120; // Increased base height
     const message = messages[index];
     const lineCount = message.content.split('\n').length;
     const charCount = message.content.length;
     
-    // Estimate height based on content length and line breaks
-    return Math.max(baseHeight, (lineCount * 24) + (Math.floor(charCount / 50) * 24) + 40);
+    // More generous height calculation
+    return Math.max(baseHeight, (lineCount * 28) + (Math.floor(charCount / 40) * 28) + 48);
   };
 
   useEffect(() => {
     if (listRef.current && messages.length > 0) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
-      // Reset cache when messages change
       listRef.current.resetAfterIndex(0);
-      setListKey(prev => prev + 1); // Force re-render
+      setListKey(prev => prev + 1);
     }
   }, [messages]);
 
   return (
-    <Box sx={{ height: '100%', width: '100%' }}>
+    <Box sx={{ 
+      height: '100%', 
+      width: '100%',
+      '& .simplebar-content': {
+        height: '100%',
+        minHeight: '100%'
+      }
+    }}>
       <AutoSizer>
         {({ height, width }) => (
           <List
