@@ -5,8 +5,12 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ChatIcon from '@mui/icons-material/Chat';
 import DescriptionIcon from '@mui/icons-material/Description';
-import { useDispatch } from 'react-redux';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearCurrentConversation } from '../store/slices/chatSlice';
+import { toggleTheme } from '../store/slices/themeSlice';
+import { RootState } from '../store';
 
 interface ChatControlsProps {
   input: string;
@@ -30,6 +34,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
   onToggleDocumentMode,
 }) => {
   const dispatch = useDispatch();
+  const themeMode = useSelector((state: RootState) => state.theme.mode);
 
   return (
     <Box
@@ -127,6 +132,22 @@ const ChatControls: React.FC<ChatControlsProps> = ({
           aria-label={isDocumentMode ? "Switch to chat mode" : "Switch to document mode"}
         >
           {isDocumentMode ? <ChatIcon /> : <DescriptionIcon />}
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={themeMode === 'light' ? "Switch to dark mode" : "Switch to light mode"}>
+        <IconButton
+          onClick={() => dispatch(toggleTheme())}
+          color="primary"
+          sx={{ 
+            borderRadius: '50%',
+            '&:hover': {
+              bgcolor: (theme) => theme.palette.primary.light,
+              color: 'white'
+            }
+          }}
+          aria-label={themeMode === 'light' ? "Switch to dark mode" : "Switch to light mode"}
+        >
+          {themeMode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
         </IconButton>
       </Tooltip>
     </Box>
