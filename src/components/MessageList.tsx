@@ -92,16 +92,20 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   return (
     <Box 
       sx={{ 
-        height: '100%',
+        flex: 1,
+        minHeight: 0,
         overflow: 'auto',
         display: 'flex',
         flexDirection: 'column',
+        pb: 2 // Add padding at bottom to prevent last message from being cut off
       }}
     >
-      {messages.map((message) => (
-        <MessageRow key={message.id} message={message} />
-      ))}
-      <div ref={messagesEndRef} />
+      <Box sx={{ flex: 1 }}>
+        {messages.map((message) => (
+          <MessageRow key={message.id} message={message} />
+        ))}
+        <div ref={messagesEndRef} />
+      </Box>
     </Box>
   );
 };

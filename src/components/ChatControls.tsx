@@ -38,6 +38,14 @@ const ChatControls: React.FC<ChatControlsProps> = ({
       sx={{
         display: 'flex',
         gap: 1,
+        p: 1,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 3,
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 1,
+        width: '100%'
       }}
     >
       <TextField
@@ -48,7 +56,12 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
         placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
         disabled={isLoading}
-        sx={{ bgcolor: 'background.paper' }}
+        sx={{ 
+          bgcolor: 'background.paper',
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 2
+          }
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -71,7 +84,10 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         variant="contained"
         disabled={isLoading || !input.trim()}
         endIcon={isLoading ? <CircularProgress size={20} /> : <SendIcon />}
-        sx={{ minWidth: '120px' }}
+        sx={{ 
+          minWidth: '120px',
+          height: '56px' // Match TextField height
+        }}
         aria-label={isLoading ? "Sending message..." : "Send message"}
       >
         Send
@@ -83,7 +99,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
             color="error"
             disabled={isLoading}
             sx={{ 
-              borderRadius: '50%',
+              height: '56px', // Match TextField height
+              width: '56px',
+              borderRadius: 2,
               '&:hover': {
                 bgcolor: (theme) => theme.palette.error.light,
                 color: 'white'
@@ -101,7 +119,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
           color="primary"
           disabled={isLoading}
           sx={{ 
-            borderRadius: '50%',
+            height: '56px', // Match TextField height
+            width: '56px',
+            borderRadius: 2,
             '&:hover': {
               bgcolor: (theme) => theme.palette.primary.light,
               color: 'white'
@@ -118,7 +138,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
           color="primary"
           disabled={isLoading}
           sx={{ 
-            borderRadius: '50%',
+            height: '56px', // Match TextField height
+            width: '56px',
+            borderRadius: 2,
             '&:hover': {
               bgcolor: (theme) => theme.palette.primary.light,
               color: 'white'
