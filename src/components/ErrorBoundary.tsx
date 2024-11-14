@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo } from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { logErrorToService } from '../utils/errorUtils';
 
 interface Props {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -17,6 +19,7 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
+      errorInfo: null
     };
   }
 
@@ -24,17 +27,25 @@ class ErrorBoundary extends Component<Props, State> {
     return {
       hasError: true,
       error,
+      errorInfo: null
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    // Log error to service
+    logErrorToService(error, errorInfo).catch(console.error);
+    
+    this.setState({
+      error,
+      errorInfo
+    });
   }
 
   handleReset = () => {
     this.setState({
       hasError: false,
       error: null,
+      errorInfo: null
     });
   };
 
@@ -47,29 +58,43 @@ class ErrorBoundary extends Component<Props, State> {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '100vh',
-            p: 3,
+            minHeight: '100vh',
+            p: 3
           }}
         >
           <Paper
             elevation={3}
             sx={{
               p: 4,
-              maxWidth: 500,
-              textAlign: 'center',
-              borderRadius: 2,
+              maxWidth: 600,
+              width: '100%',
+              textAlign: 'center'
             }}
           >
-            <Typography variant="h5" color="error" gutterBottom>
+            <Typography variant="h5" component="h1" gutterBottom color="error">
               Oops! Something went wrong
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              {this.state.error?.message || 'An unexpected error occurred'}
+            <Typography variant="body1" color="text.secondary" paragraph>
+              We apologize for the inconvenience. Our team has been notified and is working to fix the issue.
             </Typography>
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <Box sx={{ mt: 2, mb: 3, textAlign: 'left' }}>
+                <Typography variant="body2" component="pre" sx={{ 
+                  p: 2,
+                  bgcolor: 'grey.100',
+                  borderRadius: 1,
+                  overflow: 'auto'
+                }}>
+                  {this.state.error.toString()}
+                  {this.state.errorInfo?.componentStack}
+                </Typography>
+              </Box>
+            )}
             <Button
               variant="contained"
-              startIcon={<RefreshIcon />}
+              color="primary"
               onClick={this.handleReset}
+              sx={{ mt: 2 }}
             >
               Try Again
             </Button>
