@@ -5,8 +5,17 @@ export interface Message {
   timestamp: number;
 }
 
-export interface ChatState {
+export interface Conversation {
+  id: string;
+  title: string;
   messages: Message[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ChatState {
+  conversations: Conversation[];
+  activeConversationId: string | null;
   isLoading: boolean;
   error: string | null;
 }

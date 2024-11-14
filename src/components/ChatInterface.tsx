@@ -1,16 +1,25 @@
 import { useState } from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, Drawer } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
+import { 
+  addMessage, 
+  setLoading, 
+  setError, 
+  updateLastMessage,
+  createNewConversation,
+  setActiveConversation,
+  deleteConversation,
+  clearCurrentConversation
+} from '../store/slices/chatSlice';
 import VirtualizedMessageList from './VirtualizedMessageList';
 import ChatControls from './ChatControls';
 import SystemPromptDialog from './SystemPromptDialog';
 import DocumentEditor from './DocumentEditor';
+import ConversationList from './ConversationList';
 import { Message, OpenRouterErrorResponse } from '../types';
 import { systemPrompts } from '../prompts/systemPrompts';
 import { checkRateLimit, sendChatRequest, handleAPIError } from '../services/api';
-import { API_CONFIG, ERROR_MESSAGES, CHAT_CONFIG } from '../config/constants';
 
 interface Comment {
   id: string;
@@ -21,6 +30,8 @@ interface Comment {
   };
   timestamp: number;
 }
+
+const DRAWER_WIDTH = 300;
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
@@ -33,7 +44,10 @@ const ChatInterface = () => {
 
   const currentPrompt = systemPrompts.find((p) => p.id === selectedPromptId)?.prompt || customPrompt;
   const dispatch = useDispatch();
-  const { messages, isLoading } = useSelector((state: RootState) => state.chat);
+  const { conversations, activeConversationId, isLoading } = useSelector((state: RootState) => state.chat);
+  
+  const activeConversation = conversations.find(c => c.id === activeConversationId);
+  const messages = activeConversation?.messages || [];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,7 +60,7 @@ const ChatInterface = () => {
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       content: input.trim(),
       role: 'user',
       timestamp: Date.now(),
@@ -57,10 +71,10 @@ const ChatInterface = () => {
     setInput('');
 
     const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: crypto.randomUUID(),
       content: '',
       role: 'assistant',
-      timestamp: Date.now() + 1,
+      timestamp: Date.now(),
     };
     dispatch(addMessage(assistantMessage));
 
@@ -116,7 +130,7 @@ const ChatInterface = () => {
   const handleAddComment = (comment: Omit<Comment, 'id' | 'timestamp'>) => {
     const newComment: Comment = {
       ...comment,
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       timestamp: Date.now()
     };
     setDocumentComments([...documentComments, newComment]);
@@ -140,85 +154,112 @@ const ChatInterface = () => {
   return (
     <Box sx={{ 
       display: 'flex',
-      flexDirection: 'column',
-      flex: 1,
-      overflow: 'hidden'
+      width: '100%',
+      height: '100%'
     }}>
-      {isDocumentMode ? (
-        <Box sx={{ 
-          flex: 1,
-          bgcolor: 'background.paper', 
-          borderRadius: 1,
-          overflow: 'hidden'
-        }}>
-          <DocumentEditor
-            content={documentContent}
-            comments={documentComments}
-            onAddComment={handleAddComment}
-            onDeleteComment={handleDeleteComment}
-            onReady={handleDocumentReady}
-            onChange={setDocumentContent}
-          />
-        </Box>
-      ) : (
-        <>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              flex: 1,
-              p: 2, 
-              overflow: 'hidden',
-              bgcolor: 'background.paper',
-              mb: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '400px' // Added minimum height
-            }}
-          >
-            <Box sx={{ flex: 1, minHeight: 0 }}>
-              {messages.length === 0 ? (
-                <Box sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  color: 'text.secondary',
-                  p: 3
-                }}>
-                  <Typography variant="body1">
-                    Welcome! Type your message below to start a conversation.
-                  </Typography>
-                </Box>
-              ) : (
-                <VirtualizedMessageList messages={messages} />
-              )}
-            </Box>
-          </Paper>
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: DRAWER_WIDTH,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <ConversationList
+          conversations={conversations}
+          activeConversationId={activeConversationId || ''}
+          onConversationSelect={(id) => dispatch(setActiveConversation(id))}
+          onNewConversation={() => dispatch(createNewConversation())}
+          onDeleteConversation={(id) => dispatch(deleteConversation(id))}
+        />
+      </Drawer>
 
-          <ChatControls
-            input={input}
-            setInput={setInput}
-            isLoading={isLoading}
-            hasMessages={messages.length > 0}
-            isDocumentMode={isDocumentMode}
-            onSubmit={handleSubmit}
-            onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
-            onToggleDocumentMode={() => setIsDocumentMode(!isDocumentMode)}
-          />
-        </>
-      )}
+      <Box sx={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        p: 2,
+        ml: `${DRAWER_WIDTH}px`
+      }}>
+        {isDocumentMode ? (
+          <Box sx={{ 
+            flex: 1,
+            bgcolor: 'background.paper', 
+            borderRadius: 1,
+            overflow: 'hidden'
+          }}>
+            <DocumentEditor
+              content={documentContent}
+              comments={documentComments}
+              onAddComment={handleAddComment}
+              onDeleteComment={handleDeleteComment}
+              onReady={handleDocumentReady}
+              onChange={setDocumentContent}
+            />
+          </Box>
+        ) : (
+          <>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                flex: 1,
+                p: 2, 
+                overflow: 'hidden',
+                bgcolor: 'background.paper',
+                mb: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '400px'
+              }}
+            >
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                {messages.length === 0 ? (
+                  <Box sx={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    p: 3
+                  }}>
+                    <Typography variant="body1">
+                      Welcome! Type your message below to start a conversation.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <VirtualizedMessageList messages={messages} />
+                )}
+              </Box>
+            </Paper>
 
-      <SystemPromptDialog
-        open={isPromptDialogOpen}
-        onClose={() => setIsPromptDialogOpen(false)}
-        selectedPromptId={selectedPromptId}
-        setSelectedPromptId={setSelectedPromptId}
-        customPrompt={customPrompt}
-        setCustomPrompt={setCustomPrompt}
-        systemPrompts={systemPrompts}
-        currentPrompt={currentPrompt}
-      />
+            <ChatControls
+              input={input}
+              setInput={setInput}
+              isLoading={isLoading}
+              hasMessages={messages.length > 0}
+              isDocumentMode={isDocumentMode}
+              onSubmit={handleSubmit}
+              onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
+              onToggleDocumentMode={() => setIsDocumentMode(!isDocumentMode)}
+            />
+          </>
+        )}
+
+        <SystemPromptDialog
+          open={isPromptDialogOpen}
+          onClose={() => setIsPromptDialogOpen(false)}
+          selectedPromptId={selectedPromptId}
+          setSelectedPromptId={setSelectedPromptId}
+          customPrompt={customPrompt}
+          setCustomPrompt={setCustomPrompt}
+          systemPrompts={systemPrompts}
+          currentPrompt={currentPrompt}
+        />
+      </Box>
     </Box>
   );
 };
