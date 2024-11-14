@@ -12,7 +12,7 @@ import {
   deleteConversation,
   clearCurrentConversation
 } from '../store/slices/chatSlice';
-import MessageList from './VirtualizedMessageList';
+import MessageList from './MessageList';
 import ChatControls from './ChatControls';
 import SystemPromptDialog from './SystemPromptDialog';
 import DocumentEditor from './DocumentEditor';
