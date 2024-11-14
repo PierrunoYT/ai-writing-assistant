@@ -12,7 +12,7 @@ import {
   deleteConversation,
   clearCurrentConversation
 } from '../store/slices/chatSlice';
-import VirtualizedMessageList from './VirtualizedMessageList';
+import MessageList from './VirtualizedMessageList';
 import ChatControls from './ChatControls';
 import SystemPromptDialog from './SystemPromptDialog';
 import DocumentEditor from './DocumentEditor';
@@ -154,9 +154,9 @@ const ChatInterface = () => {
   return (
     <Box sx={{ 
       display: 'flex',
-      width: '100%',
       height: '100vh',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      bgcolor: 'background.default'
     }}>
       <Drawer
         variant="permanent"
@@ -181,11 +181,12 @@ const ChatInterface = () => {
       <Box sx={{ 
         display: 'flex',
         flexDirection: 'column',
-        flex: 1,
+        flexGrow: 1,
         p: 2,
+        gap: 2,
         ml: `${DRAWER_WIDTH}px`,
-        height: '100%',
-        overflow: 'auto'
+        height: '100vh',
+        overflow: 'hidden'
       }}>
         {isDocumentMode ? (
           <Box sx={{ 
@@ -209,38 +210,30 @@ const ChatInterface = () => {
               elevation={3} 
               sx={{ 
                 flex: 1,
-                p: 2, 
-                overflow: 'auto',
-                bgcolor: 'background.paper',
-                mb: 2,
                 display: 'flex',
                 flexDirection: 'column',
-                height: 'calc(100vh - 200px)',
-                minHeight: '600px'
+                bgcolor: 'background.paper',
+                borderRadius: 2,
+                overflow: 'hidden'
               }}
             >
-              <Box sx={{ 
-                flex: 1,
-                overflow: 'auto'
-              }}>
-                {messages.length === 0 ? (
-                  <Box sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    color: 'text.secondary',
-                    p: 3
-                  }}>
-                    <Typography variant="body1">
-                      Welcome! Type your message below to start a conversation.
-                    </Typography>
-                  </Box>
-                ) : (
-                  <VirtualizedMessageList messages={messages} />
-                )}
-              </Box>
+              {messages.length === 0 ? (
+                <Box sx={{ 
+                  flex: 1,
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  p: 3
+                }}>
+                  <Typography variant="body1">
+                    Welcome! Type your message below to start a conversation.
+                  </Typography>
+                </Box>
+              ) : (
+                <MessageList messages={messages} />
+              )}
             </Paper>
 
             <ChatControls

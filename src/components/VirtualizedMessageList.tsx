@@ -1,35 +1,17 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { VariableSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import React from 'react';
 import { Box, Paper, Typography, IconButton, Tooltip } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { Message } from '../types';
 
 interface MessageRowProps {
-  data: Message[];
-  index: number;
-  style: React.CSSProperties;
+  message: Message;
 }
 
-const MessageRow = ({ data, index, style }: MessageRowProps) => {
-  const message = data[index];
-  const [height, setHeight] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (contentRef.current) {
-      setHeight(contentRef.current.getBoundingClientRect().height);
-    }
-  }, [message.content]);
-
+const MessageRow = ({ message }: MessageRowProps) => {
   return (
-    <div style={{
-      ...style,
-      height: 'auto',
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      paddingLeft: '16px',
-      paddingRight: '16px',
+    <Box sx={{ 
+      py: 1.5,
+      px: 2
     }}>
       <Paper
         elevation={1}
@@ -50,7 +32,7 @@ const MessageRow = ({ data, index, style }: MessageRowProps) => {
           ml: message.role === 'user' ? 'auto' : '0',
         }}
       >
-        <Box sx={{ position: 'relative' }} ref={contentRef}>
+        <Box sx={{ position: 'relative' }}>
           <Typography
             variant="body1"
             sx={{
@@ -92,65 +74,36 @@ const MessageRow = ({ data, index, style }: MessageRowProps) => {
           {new Date(message.timestamp).toLocaleTimeString()}
         </Typography>
       </Paper>
-    </div>
-  );
-};
-
-interface VirtualizedMessageListProps {
-  messages: Message[];
-}
-
-const VirtualizedMessageList: React.FC<VirtualizedMessageListProps> = ({
-  messages,
-}) => {
-  const listRef = useRef<List>(null);
-  const [listKey, setListKey] = useState(0);
-
-  const getItemSize = (index: number) => {
-    const baseHeight = 120; // Increased base height
-    const message = messages[index];
-    const lineCount = message.content.split('\n').length;
-    const charCount = message.content.length;
-    
-    // More generous height calculation
-    return Math.max(baseHeight, (lineCount * 28) + (Math.floor(charCount / 40) * 28) + 48);
-  };
-
-  useEffect(() => {
-    if (listRef.current && messages.length > 0) {
-      listRef.current.scrollToItem(messages.length - 1, 'end');
-      listRef.current.resetAfterIndex(0);
-      setListKey(prev => prev + 1);
-    }
-  }, [messages]);
-
-  return (
-    <Box sx={{ 
-      height: '100%', 
-      width: '100%',
-      '& .simplebar-content': {
-        height: '100%',
-        minHeight: '100%'
-      }
-    }}>
-      <AutoSizer>
-        {({ height, width }) => (
-          <List
-            key={listKey}
-            ref={listRef}
-            height={height}
-            itemCount={messages.length}
-            itemSize={getItemSize}
-            width={width}
-            itemData={messages}
-            overscanCount={5}
-          >
-            {MessageRow}
-          </List>
-        )}
-      </AutoSizer>
     </Box>
   );
 };
 
-export default VirtualizedMessageList;
+interface MessageListProps {
+  messages: Message[];
+}
+
+const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  return (
+    <Box 
+      sx={{ 
+        height: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {messages.map((message) => (
+        <MessageRow key={message.id} message={message} />
+      ))}
+      <div ref={messagesEndRef} />
+    </Box>
+  );
+};
+
+export default MessageList;
