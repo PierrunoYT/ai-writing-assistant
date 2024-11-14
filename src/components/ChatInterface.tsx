@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Paper } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addMessage, setLoading, setError, updateLastMessage } from '../store/slices/chatSlice';
@@ -171,11 +171,28 @@ const ChatInterface = () => {
               bgcolor: 'background.paper',
               mb: 2,
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              minHeight: '400px' // Added minimum height
             }}
           >
             <Box sx={{ flex: 1, minHeight: 0 }}>
-              <VirtualizedMessageList messages={messages} />
+              {messages.length === 0 ? (
+                <Box sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  p: 3
+                }}>
+                  <Typography variant="body1">
+                    Welcome! Type your message below to start a conversation.
+                  </Typography>
+                </Box>
+              ) : (
+                <VirtualizedMessageList messages={messages} />
+              )}
             </Box>
           </Paper>
 
