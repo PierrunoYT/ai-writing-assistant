@@ -1,4 +1,4 @@
-import { Box, Container, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useSelector, useDispatch } from 'react-redux';
@@ -14,11 +14,10 @@ const Layout = () => {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column', 
-      minHeight: '100vh',
       height: '100vh',
       overflow: 'hidden'
     }}>
-      <AppBar position="static" sx={{ flexShrink: 0 }}>
+      <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             AI Writing Assistant
@@ -27,7 +26,6 @@ const Layout = () => {
             color="inherit" 
             onClick={() => dispatch(toggleTheme())} 
             sx={{ 
-              mr: 1,
               '&:hover': {
                 bgcolor: (theme) => theme.palette.primary.light,
                 color: 'white'
@@ -39,32 +37,29 @@ const Layout = () => {
         </Toolbar>
       </AppBar>
 
-      <Container 
+      <Box 
         component="main" 
         sx={{ 
           flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          py: 2
+          minHeight: 0,
+          display: 'flex'
         }}
       >
         <ChatInterface />
-      </Container>
+      </Box>
 
       <Box 
         component="footer" 
         sx={{ 
-          py: 1, 
+          py: 1,
           bgcolor: 'background.paper',
-          flexShrink: 0
+          borderTop: 1,
+          borderColor: 'divider'
         }}
       >
-        <Container maxWidth="sm">
-          <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} AI Writing Assistant
-          </Typography>
-        </Container>
+        <Typography variant="body2" color="text.secondary" align="center">
+          © {new Date().getFullYear()} AI Writing Assistant
+        </Typography>
       </Box>
     </Box>
   );

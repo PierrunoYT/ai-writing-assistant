@@ -154,9 +154,9 @@ const ChatInterface = () => {
   return (
     <Box sx={{ 
       display: 'flex',
-      height: '100vh',
-      overflow: 'hidden',
-      bgcolor: 'background.default'
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden'
     }}>
       <Drawer
         variant="permanent"
@@ -182,72 +182,82 @@ const ChatInterface = () => {
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
-        p: 2,
-        gap: 2,
-        ml: `${DRAWER_WIDTH}px`,
-        height: '100vh',
-        overflow: 'hidden'
+        minWidth: 0,
+        height: '100%',
+        ml: `${DRAWER_WIDTH}px`
       }}>
-        {isDocumentMode ? (
-          <Box sx={{ 
-            flex: 1,
-            bgcolor: 'background.paper', 
-            borderRadius: 1,
-            overflow: 'hidden'
-          }}>
-            <DocumentEditor
-              content={documentContent}
-              comments={documentComments}
-              onAddComment={handleAddComment}
-              onDeleteComment={handleDeleteComment}
-              onReady={handleDocumentReady}
-              onChange={setDocumentContent}
-            />
-          </Box>
-        ) : (
-          <>
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                bgcolor: 'background.paper',
-                borderRadius: 2,
-                overflow: 'hidden'
-              }}
-            >
-              {messages.length === 0 ? (
-                <Box sx={{ 
+        <Box sx={{ 
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          p: 2,
+          gap: 2
+        }}>
+          {isDocumentMode ? (
+            <Box sx={{ 
+              flex: 1,
+              bgcolor: 'background.paper', 
+              borderRadius: 1,
+              overflow: 'hidden'
+            }}>
+              <DocumentEditor
+                content={documentContent}
+                comments={documentComments}
+                onAddComment={handleAddComment}
+                onDeleteComment={handleDeleteComment}
+                onReady={handleDocumentReady}
+                onChange={setDocumentContent}
+              />
+            </Box>
+          ) : (
+            <>
+              <Paper 
+                elevation={3} 
+                sx={{ 
                   flex: 1,
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  color: 'text.secondary',
-                  p: 3
-                }}>
-                  <Typography variant="body1">
-                    Welcome! Type your message below to start a conversation.
-                  </Typography>
-                </Box>
-              ) : (
-                <MessageList messages={messages} />
-              )}
-            </Paper>
+                  minHeight: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  bgcolor: 'background.paper',
+                  borderRadius: 2,
+                  overflow: 'hidden'
+                }}
+              >
+                {messages.length === 0 ? (
+                  <Box sx={{ 
+                    flex: 1,
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    p: 3
+                  }}>
+                    <Typography variant="body1">
+                      Welcome! Type your message below to start a conversation.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <MessageList messages={messages} />
+                )}
+              </Paper>
 
-            <ChatControls
-              input={input}
-              setInput={setInput}
-              isLoading={isLoading}
-              hasMessages={messages.length > 0}
-              isDocumentMode={isDocumentMode}
-              onSubmit={handleSubmit}
-              onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
-              onToggleDocumentMode={() => setIsDocumentMode(!isDocumentMode)}
-            />
-          </>
-        )}
+              <Box sx={{ flexShrink: 0 }}>
+                <ChatControls
+                  input={input}
+                  setInput={setInput}
+                  isLoading={isLoading}
+                  hasMessages={messages.length > 0}
+                  isDocumentMode={isDocumentMode}
+                  onSubmit={handleSubmit}
+                  onOpenPromptDialog={() => setIsPromptDialogOpen(true)}
+                  onToggleDocumentMode={() => setIsDocumentMode(!isDocumentMode)}
+                />
+              </Box>
+            </>
+          )}
+        </Box>
 
         <SystemPromptDialog
           open={isPromptDialogOpen}
