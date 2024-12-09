@@ -14,6 +14,7 @@ import {
   deleteConversation,
   clearCurrentConversation
 } from '../store/slices/chatSlice';
+import { toggleDrawer } from '../store/slices/settingsSlice';
 import MessageList from './MessageList';
 import ChatControls from './ChatControls';
 import SystemPromptDialog from './SystemPromptDialog';
