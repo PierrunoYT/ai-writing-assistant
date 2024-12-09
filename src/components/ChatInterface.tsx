@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Drawer, IconButton } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -27,7 +27,7 @@ const COLLAPSED_WIDTH = 60;
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const isDrawerOpen = useSelector((state: RootState) => state.settings.isDrawerOpen);
   const [selectedPromptId, setSelectedPromptId] = useState('default');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
@@ -147,7 +147,7 @@ const ChatInterface = () => {
           borderBottom: 1,
           borderColor: 'divider'
         }}>
-          <IconButton onClick={() => setIsDrawerOpen(!isDrawerOpen)}>
+          <IconButton onClick={() => dispatch(toggleDrawer())}>
             {isDrawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </Box>
