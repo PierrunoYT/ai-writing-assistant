@@ -23,8 +23,7 @@ import { Message, OpenRouterErrorResponse } from '../types';
 import { systemPrompts } from '../prompts/systemPrompts';
 import { checkRateLimit, sendChatRequest, handleAPIError } from '../services/api';
 
-const DRAWER_WIDTH = 300;
-const COLLAPSED_WIDTH = 60;
+import { DRAWER_WIDTH, COLLAPSED_WIDTH } from '../constants';
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');

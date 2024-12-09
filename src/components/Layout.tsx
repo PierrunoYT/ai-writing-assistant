@@ -1,4 +1,5 @@
 import { Box, AppBar, Toolbar, Typography, IconButton, ButtonGroup, Button, Tooltip } from '@mui/material';
+import { DRAWER_WIDTH, COLLAPSED_WIDTH } from '../constants';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ChatIcon from '@mui/icons-material/Chat';
@@ -31,6 +32,7 @@ const Layout = () => {
     state.document.documents.find(doc => doc.id === state.document.currentDocumentId)
   );
   const showToolbar = useSelector((state: RootState) => state.settings.showToolbar);
+  const isDrawerOpen = useSelector((state: RootState) => state.settings.isDrawerOpen);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -105,7 +107,9 @@ const Layout = () => {
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 color: 'transparent',
-                fontWeight: 700
+                fontWeight: 700,
+                ml: { xs: 0, sm: isDrawerOpen ? `${DRAWER_WIDTH}px` : `${COLLAPSED_WIDTH}px` },
+                transition: 'margin-left 0.3s ease'
               }}
             >
               AI Writing Assistant
