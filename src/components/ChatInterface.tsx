@@ -136,8 +136,13 @@ const ChatInterface = () => {
           '& .MuiDrawer-paper': {
             width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
             boxSizing: 'border-box',
-            transition: 'width 0.3s ease',
+            transition: 'all 0.3s ease',
             overflowX: 'hidden',
+            '& > *:not(:first-child)': {
+              opacity: isDrawerOpen ? 1 : 0,
+              visibility: isDrawerOpen ? 'visible' : 'hidden',
+              transition: 'opacity 0.2s ease, visibility 0.2s ease',
+            }
           },
         }}
       >
