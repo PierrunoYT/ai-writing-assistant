@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Box, Paper, Typography, Drawer } from '@mui/material';
+import { Box, Paper, Typography, Drawer, IconButton } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { 
@@ -21,9 +23,11 @@ import { systemPrompts } from '../prompts/systemPrompts';
 import { checkRateLimit, sendChatRequest, handleAPIError } from '../services/api';
 
 const DRAWER_WIDTH = 300;
+const COLLAPSED_WIDTH = 60;
 
 const ChatInterface = () => {
   const [input, setInput] = useState('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [selectedPromptId, setSelectedPromptId] = useState('default');
   const [customPrompt, setCustomPrompt] = useState('');
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
@@ -125,14 +129,28 @@ const ChatInterface = () => {
       <Drawer
         variant="permanent"
         sx={{
-          width: DRAWER_WIDTH,
+          width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
           flexShrink: 0,
+          transition: 'width 0.3s ease',
           '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
+            width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
             boxSizing: 'border-box',
+            transition: 'width 0.3s ease',
+            overflowX: 'hidden',
           },
         }}
       >
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider'
+        }}>
+          <IconButton onClick={() => setIsDrawerOpen(!isDrawerOpen)}>
+            {isDrawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          </IconButton>
+        </Box>
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversationId || ''}
@@ -148,7 +166,8 @@ const ChatInterface = () => {
         flexGrow: 1,
         minWidth: 0,
         height: '100%',
-        ml: `${DRAWER_WIDTH}px`,
+        ml: isDrawerOpen ? `${DRAWER_WIDTH}px` : `${COLLAPSED_WIDTH}px`,
+        transition: 'margin-left 0.3s ease',
         position: 'relative'
       }}>
         <Box sx={{ 
@@ -162,7 +181,8 @@ const ChatInterface = () => {
           width: '100%',
           margin: '0 auto',
           position: 'relative',
-          right: `${DRAWER_WIDTH/2}px`
+          right: isDrawerOpen ? `${DRAWER_WIDTH/2}px` : `${COLLAPSED_WIDTH/2}px`,
+          transition: 'right 0.3s ease'
         }}>
           <>
               <Paper 
